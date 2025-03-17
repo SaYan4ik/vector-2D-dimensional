@@ -62,6 +62,10 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
             self?.sideMenuViewController.setViewModelData(vectors)
             self?.scene.updateVectors(vectors)
         }.store(in: &cancellables)
+        
+        scene.dragDidEnd = {
+            self.viewModel.fetchVectors()
+        }
     }
     
     private func setupScene() {
@@ -81,7 +85,6 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     @objc func addVector() {
         let addVectorVC = AddVectorViewController(viewModel: viewModel)
-        let navAddVC = UINavigationController(rootViewController: addVectorVC)
         navigationController?.pushViewController(addVectorVC, animated: true)
     }
 }

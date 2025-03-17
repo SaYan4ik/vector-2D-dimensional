@@ -16,9 +16,8 @@ class CanvasScene: SKScene {
     
     private let cameraNode = SKCameraNode()
     private var lastTouchPosition: CGPoint?
-    
-    let background = SKSpriteNode(imageNamed: "10262400")
-    
+    var dragDidEnd: (() -> Void)?
+        
     override init(size: CGSize = .zero) {
         super.init(size: size)
     }
@@ -70,9 +69,10 @@ class CanvasScene: SKScene {
     }
     
     func addGesture(){
+        guard let view else { return }
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
         longPressGesture.minimumPressDuration = 0.3
-        view!.addGestureRecognizer(longPressGesture)
+        view.addGestureRecognizer(longPressGesture)
     }
     
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
@@ -87,6 +87,7 @@ class CanvasScene: SKScene {
                 longPressChanged(location: locationInScene)
             case .ended, .cancelled:
                 longPressEnded()
+                dragDidEnd?()
             default:
                 break
         }
@@ -129,6 +130,8 @@ class CanvasScene: SKScene {
             
             vectorNode.move(by: translation)
             initialTouchPoint = location
+            updateVectorInRealm(vectorNode)
+            
         } else if let pointNode = selectedNode as? SKShapeNode,
                   let vectorNode = pointNode.parent as? VectorNode {
             pointNode.position = location
@@ -138,6 +141,27 @@ class CanvasScene: SKScene {
             } else if pointNode == vectorNode.endPointNode {
                 vectorNode.endPoint = location
             }
+            
+            updateVectorInRealm(vectorNode)
+        }
+    }
+    
+    private func updateVectorInRealm(_ vectorNode: VectorNode) {
+        guard let vectorModel = vectors.first(where: { $0.id == vectorNode.id }) else {
+            return
+        }
+        
+        let dx = Double(vectorNode.endPoint.x) - Double(vectorNode.startPoint.x)
+        let dy = Double(vectorNode.endPoint.y) - Double(vectorNode.startPoint.y)
+        
+        RealmManager.shared.update { realm in
+            vectorModel.startX = Double(vectorNode.startPoint.x)
+            vectorModel.startY = Double(vectorNode.startPoint.y)
+            vectorModel.endX = Double(vectorNode.endPoint.x)
+            vectorModel.endY = Double(vectorNode.endPoint.y)
+            vectorModel.length = sqrt(dx * dx + dy * dy)
+            vectorModel.angle = atan2(dy, dx)
+            realm.add(vectorModel, update: .modified)
         }
     }
     

@@ -19,7 +19,9 @@ class RealmManager {
     }
     
     func update(realmBlock: @escaping (Realm) -> Void) {
-        realmBlock(self.realm)
+        try? realm.write {
+            realmBlock(realm)
+        }
     }
     
     func read<T: Object>(ofType: T.Type) -> [T] {

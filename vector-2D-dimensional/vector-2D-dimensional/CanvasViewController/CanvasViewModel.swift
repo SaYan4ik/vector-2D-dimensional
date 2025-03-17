@@ -16,16 +16,7 @@ class CanvasViewModel {
         fetchVectors()
     }
     
-    private func fetchVectors() {
-//        let mockVectors: [VectorModel] = [
-//            VectorModel(id: UUID(), startX: 0.0, startY: 0.0, endX: 100.0, endY: 100.0, color: .red),
-////            VectorModel(id: UUID(), startX: 50.0, startY: 50.0, endX: 150.0, endY: 150.0, color: .green),
-////            VectorModel(id: UUID(), startX: 100.0, startY: 100.0, endX: 200.0, endY: 200.0, color: .blue),
-//            VectorModel(id: UUID(), startX: 200.0, startY: 200.0, endX: 300.0, endY: 300.0, color: .yellow)
-//        ]
-//        
-//        vectors = mockVectors
-        
+    func fetchVectors() {        
         let vectors = RealmManager.shared.read(ofType: VectorModel.self)
         self.vectors = vectors
     }
@@ -35,7 +26,9 @@ class CanvasViewModel {
         startY: Double,
         endX: Double,
         endY: Double,
-        color: UIColor
+        color: UIColor,
+        length: Double,
+        angle: Double
     ) {
         let newVector = VectorModel(
             id: UUID(),
@@ -43,7 +36,9 @@ class CanvasViewModel {
             startY: startY,
             endX: endX,
             endY: endY,
-            color: color
+            color: color,
+            length: length,
+            angle: angle
         )
         vectors.append(newVector)
         

@@ -80,7 +80,9 @@ class AddVectorViewController: UIViewController {
         guard let startX = Double(addVectorView.startXTextField.text ?? ""),
               let startY = Double(addVectorView.startYTextField.text ?? ""),
               let endX = Double(addVectorView.endXTextField.text ?? ""),
-              let endY = Double(addVectorView.endYTextField.text ?? "")
+              let endY = Double(addVectorView.endYTextField.text ?? ""),
+              let length = Double(addVectorView.lengthTextField.text ?? ""),
+              let angle = Double(addVectorView.angleTextField.text ?? "")
         else {
             return
         }
@@ -97,8 +99,12 @@ class AddVectorViewController: UIViewController {
             startY: startY,
             endX: endX,
             endY: endY,
-            color: randomColor
+            color: randomColor,
+            length: length,
+            angle: angle
         )
+        
+        navigationController?.popViewController(animated: true)
     }
     
     @objc private func didTapClose() {
@@ -140,7 +146,7 @@ class AddVectorView: UIView {
                                                           spacing: 5)
     
     lazy var lengthTextField = textFieldBuilderForCords(with: "Length")
-    lazy var degreeTextField = textFieldBuilderForCords(with: "Degree")
+    lazy var angleTextField = textFieldBuilderForCords(with: "Degree")
     
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
@@ -151,7 +157,6 @@ class AddVectorView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - UI Setup
     private func createLabel(text: String,
                              font: UIFont) -> UILabel {
         let label = UILabel()
@@ -202,7 +207,7 @@ class AddVectorView: UIView {
         mainContainerStack.addArrangedSubview(otherParamsLabel)
         mainContainerStack.addArrangedSubview(otherParamsContainerStack)
         otherParamsContainerStack.addArrangedSubview(lengthTextField)
-        otherParamsContainerStack.addArrangedSubview(degreeTextField)
+        otherParamsContainerStack.addArrangedSubview(angleTextField)
         
         NSLayoutConstraint.activate([
             mainContainerStack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
@@ -216,7 +221,7 @@ class AddVectorView: UIView {
         endXTextField.delegate = self
         endYTextField.delegate = self
         lengthTextField.delegate = self
-        degreeTextField.delegate = self
+        angleTextField.delegate = self
     }
     
     private func updateFields() {
@@ -233,14 +238,14 @@ class AddVectorView: UIView {
         lengthTextField.text = String(format: "%.2f", length)
         
         let angle = atan2(dy, dx) * 180 / .pi
-        degreeTextField.text = String(format: "%.2f", angle)
+        angleTextField.text = String(format: "%.2f", angle)
     }
     
     private func updateCoordinatesFromLengthAndAngle() {
         guard let startX = Double(startXTextField.text ?? "0"),
               let startY = Double(startYTextField.text ?? "0"),
               let length = Double(lengthTextField.text ?? "0"),
-              let angle = Double(degreeTextField.text ?? "0") else {
+              let angle = Double(angleTextField.text ?? "0") else {
             return
         }
         
@@ -256,7 +261,7 @@ class AddVectorView: UIView {
 
 extension AddVectorView: UITextFieldDelegate {
     func textFieldDidEndEditing(_ textField: UITextField) {
-        if textField == lengthTextField || textField == degreeTextField {
+        if textField == lengthTextField || textField == angleTextField {
             updateCoordinatesFromLengthAndAngle()
         } else {
             updateFields()

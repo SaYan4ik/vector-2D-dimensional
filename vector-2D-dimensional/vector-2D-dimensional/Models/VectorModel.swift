@@ -15,10 +15,8 @@ class VectorModel: Object {
     @objc dynamic var endX: Double = 0.0
     @objc dynamic var endY: Double = 0.0
     @objc dynamic var colorData: Data?
-    
-    var length: Double {
-        return sqrt(pow(endX - startX, 2) + pow(endY - startY, 2))
-    }
+    @objc dynamic var length: Double = 0.0
+    @objc dynamic var angle: Double = 0.0
     
     var color: UIColor {
         get {
@@ -30,7 +28,7 @@ class VectorModel: Object {
         }
     }
     
-    convenience init(id: UUID, startX: Double, startY: Double, endX: Double, endY: Double, color: UIColor) {
+    convenience init(id: UUID, startX: Double, startY: Double, endX: Double, endY: Double, color: UIColor, length: Double, angle: Double) {
         self.init()
         self.id = id
         self.startX = startX
@@ -38,6 +36,12 @@ class VectorModel: Object {
         self.endX = endX
         self.endY = endY
         self.color = color
+        self.length = length
+        self.angle = angle
+    }
+    
+    override class func primaryKey() -> String? {
+        return "id"
     }
 }
 
@@ -51,9 +55,7 @@ extension UIColor {
         rgba.append(UInt8(components.count > 3 ? components[3] * 255.0 : 255.0))
         return Data(rgba)
     }
-}
-
-extension UIColor {
+    
     convenience init?(data: Data) {
         var rgba = [UInt8](repeating: 0, count: 4)
         data.copyBytes(to: &rgba, count: 4)
@@ -63,4 +65,3 @@ extension UIColor {
                   alpha: CGFloat(rgba[3]) / 255.0)
     }
 }
-
