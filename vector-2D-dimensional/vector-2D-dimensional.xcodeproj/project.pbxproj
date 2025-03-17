@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A2C17B362D86005400991EDC /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A2C17B352D86005400991EDC /* RealmSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A2C1793A2D8301FD00991EDC /* vector-2D-dimensional.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vector-2D-dimensional.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A2C17B362D86005400991EDC /* RealmSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = "vector-2D-dimensional";
 			packageProductDependencies = (
+				A2C17B352D86005400991EDC /* RealmSwift */,
 			);
 			productName = "vector-2D-dimensional";
 			productReference = A2C1793A2D8301FD00991EDC /* vector-2D-dimensional.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = A2C179312D8301FD00991EDC;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A2C17B322D86005400991EDC /* XCRemoteSwiftPackageReference "realm-cocoa" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A2C1793B2D8301FD00991EDC /* Products */;
 			projectDirPath = "";
@@ -333,6 +342,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A2C17B322D86005400991EDC /* XCRemoteSwiftPackageReference "realm-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-cocoa.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A2C17B352D86005400991EDC /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A2C17B322D86005400991EDC /* XCRemoteSwiftPackageReference "realm-cocoa" */;
+			productName = RealmSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A2C179322D8301FD00991EDC /* Project object */;
 }

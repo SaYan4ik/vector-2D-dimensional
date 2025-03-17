@@ -6,27 +6,32 @@
 //
 
 import UIKit
+import RealmSwift
 
-class VectorModel {
-    var id: UUID
-    var startX: Double
-    var startY: Double
-    var endX: Double
-    var endY: Double
-    var color: UIColor
+class VectorModel: Object {
+    @objc dynamic var id: UUID = UUID()
+    @objc dynamic var startX: Double = 0.0
+    @objc dynamic var startY: Double = 0.0
+    @objc dynamic var endX: Double = 0.0
+    @objc dynamic var endY: Double = 0.0
+    @objc dynamic var colorData: Data?
     
     var length: Double {
         return sqrt(pow(endX - startX, 2) + pow(endY - startY, 2))
     }
     
-    init(
-        id: UUID,
-        startX: Double,
-        startY: Double,
-        endX: Double,
-        endY: Double,
-        color: UIColor
-    ) {
+    var color: UIColor {
+        get {
+            guard let data = colorData else { return UIColor.clear }
+            return UIColor(data: data) ?? UIColor.clear
+        }
+        set {
+            colorData = newValue.toData()
+        }
+    }
+    
+    convenience init(id: UUID, startX: Double, startY: Double, endX: Double, endY: Double, color: UIColor) {
+        self.init()
         self.id = id
         self.startX = startX
         self.startY = startY
@@ -35,3 +40,27 @@ class VectorModel {
         self.color = color
     }
 }
+
+extension UIColor {
+    func toData() -> Data? {
+        guard let components = cgColor.components else { return nil }
+        var rgba = [UInt8]()
+        rgba.append(UInt8(components[0] * 255.0))
+        rgba.append(UInt8(components[1] * 255.0))
+        rgba.append(UInt8(components[2] * 255.0))
+        rgba.append(UInt8(components.count > 3 ? components[3] * 255.0 : 255.0))
+        return Data(rgba)
+    }
+}
+
+extension UIColor {
+    convenience init?(data: Data) {
+        var rgba = [UInt8](repeating: 0, count: 4)
+        data.copyBytes(to: &rgba, count: 4)
+        self.init(red: CGFloat(rgba[0]) / 255.0,
+                  green: CGFloat(rgba[1]) / 255.0,
+                  blue: CGFloat(rgba[2]) / 255.0,
+                  alpha: CGFloat(rgba[3]) / 255.0)
+    }
+}
+

@@ -9,6 +9,7 @@ import SpriteKit
 
 
 class VectorNode: SKNode {
+    var id: UUID
     var startPointNode: SKShapeNode?
     var endPointNode: SKShapeNode?
     var lineNode: SKShapeNode?
@@ -25,9 +26,10 @@ class VectorNode: SKNode {
         }
     }
     
-    var color: UIColor
+    private var color: UIColor
     
-    init(startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
+    init(id: UUID, startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
+        self.id = id
         self.startPoint = startPoint
         self.endPoint = endPoint
         self.color = color

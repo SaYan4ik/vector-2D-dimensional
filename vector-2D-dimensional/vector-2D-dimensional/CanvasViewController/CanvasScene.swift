@@ -60,6 +60,7 @@ class CanvasScene: SKScene {
     
     private func drawVectorNode(_ vector: VectorModel) {
         let vectorNode = VectorNode(
+            id: vector.id,
             startPoint: CGPoint(x: vector.startX, y: vector.startY),
             endPoint: CGPoint(x: vector.endX, y: vector.endY),
             color: vector.color
