@@ -55,7 +55,7 @@ class VectorNode: SKNode {
         let shapeNode = SKShapeNode(path: path)
         shapeNode.strokeColor = color
         shapeNode.name = "Vector line"
-        shapeNode.lineWidth = 2
+        shapeNode.lineWidth = 1
         lineNode = shapeNode
         addChild(shapeNode)
     }
@@ -119,7 +119,32 @@ class VectorNode: SKNode {
         arrowNode.strokeColor = .black
         arrowNode.position = position
         arrowNode.zRotation = angle
-                
+        
         return arrowNode
+    }
+    
+    func animationNodeBorder() {
+        let duration: TimeInterval = 2.0
+        
+        let increaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
+                let progress = elapsedTime / CGFloat(duration)
+                self.lineNode?.lineWidth = 1.0 + 3.0 * progress
+                self.startPointNode?.lineWidth = 1.0 + 3.0 * progress
+                self.endPointNode?.lineWidth = 1.0 + 3.0 * progress
+        }
+        
+        let decreaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
+                let progress = elapsedTime / CGFloat(duration)
+                
+                self.lineNode?.lineWidth = 4.0 - 3.0 * progress
+                self.startPointNode?.lineWidth = 4.0 - 3.0 * progress
+                self.endPointNode?.lineWidth = 4.0 - 3.0 * progress
+        }
+        
+        let sequence = SKAction.sequence([increaseWidth, decreaseWidth])
+        
+        lineNode?.run(sequence)
+        startPointNode?.run(sequence)
+        endPointNode?.run(sequence)
     }
 }

@@ -10,13 +10,7 @@ import Foundation
 class SideMenuViewModel {
     @Published private(set) var vectors: [VectorModel] = []
     
-    init() {
-        fetchVectors()
-    }
-    
-    private func fetchVectors() {
-        
-    }
+    init() { }
     
     func setData(_ vectors: [VectorModel]) {
         self.vectors = vectors

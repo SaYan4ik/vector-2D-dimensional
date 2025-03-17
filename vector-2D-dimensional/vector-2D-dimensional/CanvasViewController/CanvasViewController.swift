@@ -98,14 +98,8 @@ extension CanvasViewController {
         sideMenuViewController.delegate = self
         view.addSubview(self.sideMenuViewController.view)
         addChild(self.sideMenuViewController)
-        
-        sideMenuWidth = view.bounds.width * 0.33
-        
         sideMenuViewController.didMove(toParent: self)
         sideMenuViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        sideMenuTrailingConstraint = self.sideMenuViewController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: -self.sideMenuWidth)
-        sideMenuTrailingConstraint.isActive = true
-        
         setupSideMenuConstrain()
         
         
@@ -115,11 +109,16 @@ extension CanvasViewController {
     }
     
     private func setupSideMenuConstrain() {
+        sideMenuWidth = view.bounds.width * 0.33
+        
         NSLayoutConstraint.activate([
             self.sideMenuViewController.view.widthAnchor.constraint(equalToConstant: self.sideMenuWidth),
             self.sideMenuViewController.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             self.sideMenuViewController.view.topAnchor.constraint(equalTo: self.view.topAnchor)
         ])
+        
+        sideMenuTrailingConstraint = self.sideMenuViewController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: -self.sideMenuWidth)
+        sideMenuTrailingConstraint.isActive = true
     }
     
     @objc private func hamburgerMenuButtonTapped(_ sender: UIButton) {
@@ -181,7 +180,14 @@ extension CanvasViewController: UIGestureRecognizerDelegate {
 extension CanvasViewController {
     func didSelectCell(_ row: Int, id: UUID) {
         DispatchQueue.main.async {
-//            self.sideMenuState(expanded: false)
+            //            self.sideMenuState(expanded: false)
+            
+            if let selectedNode = self.scene.children
+                .map({($0 as? VectorNode)})
+                .first(where: { $0?.id == id })
+            {
+                selectedNode?.animationNodeBorder()
+            }
         }
     }
 }

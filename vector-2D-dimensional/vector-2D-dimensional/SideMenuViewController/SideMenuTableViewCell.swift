@@ -84,7 +84,14 @@ class SideMenuTableViewCell: UITableViewCell {
     }
     
     func set(vector: VectorModel) {
-        vectorLengthLabel.text = "Length: \(vector.length)"
-        vectorCordsLabel.text = "(\(vector.startX), \(vector.startY))(\(vector.endX), \(vector.endY))"
+        let formedLength = String(format: "%.2f", vector.length)
+        vectorLengthLabel.text = "Length: \(formedLength)"
+        
+        let formedStartX = String(format: "%.2f", vector.startX)
+        let formedStartY = String(format: "%.2f", vector.startY)
+        let formedEndX = String(format: "%.2f", vector.endX)
+        let formedEndY = String(format: "%.2f", vector.endY)
+        
+        vectorCordsLabel.text = "(\(formedStartX), \(formedStartY))(\(formedEndX), \(formedEndY))"
     }
 }

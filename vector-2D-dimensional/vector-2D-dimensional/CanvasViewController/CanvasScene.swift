@@ -30,6 +30,10 @@ class CanvasScene: SKScene {
         self.camera = cameraNode
         addChild(cameraNode)
         
+        handlePanCanvas(on: view)
+    }
+    
+    private func handlePanCanvas(on view: SKView) {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         view.addGestureRecognizer(panGesture)
     }
@@ -169,5 +173,4 @@ class CanvasScene: SKScene {
         dragIsStart = false
         initialTouchPoint = .zero
     }
-    
 }
