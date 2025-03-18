@@ -52,7 +52,6 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
         configureSideMenu()
         
         bindViewModel()
-        
         scene.addGesture()
     }
     
@@ -105,7 +104,7 @@ extension CanvasViewController {
         
         let edgePanGestureRecognizer = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgeSwipe))
         edgePanGestureRecognizer.edges = .left
-        self.view.addGestureRecognizer(edgePanGestureRecognizer)
+        view.addGestureRecognizer(edgePanGestureRecognizer)
     }
     
     private func setupSideMenuConstrain() {
@@ -117,7 +116,8 @@ extension CanvasViewController {
             self.sideMenuViewController.view.topAnchor.constraint(equalTo: self.view.topAnchor)
         ])
         
-        sideMenuTrailingConstraint = self.sideMenuViewController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: -self.sideMenuWidth)
+        sideMenuTrailingConstraint = self.sideMenuViewController.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor,
+                                                                                               constant: -self.sideMenuWidth)
         sideMenuTrailingConstraint.isActive = true
     }
     
@@ -180,8 +180,6 @@ extension CanvasViewController: UIGestureRecognizerDelegate {
 extension CanvasViewController {
     func didSelectCell(_ row: Int, id: UUID) {
         DispatchQueue.main.async {
-            //            self.sideMenuState(expanded: false)
-            
             if let selectedNode = self.scene.children
                 .map({($0 as? VectorNode)})
                 .first(where: { $0?.id == id })
@@ -189,5 +187,9 @@ extension CanvasViewController {
                 selectedNode?.animationNodeBorder()
             }
         }
+    }
+    
+    func didDeleteCell(_ row: Int, id: UUID) {
+        viewModel.removeVector(by: id)
     }
 }

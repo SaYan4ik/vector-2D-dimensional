@@ -11,6 +11,7 @@ import Combine
 
 protocol SideMenuViewControllerDelegate: AnyObject {
     func didSelectCell(_ row: Int, id: UUID)
+    func didDeleteCell(_ row: Int, id: UUID)
 }
 
 class SideMenuViewController: UIViewController {
@@ -89,11 +90,24 @@ extension SideMenuViewController: UITableViewDataSource {
         return vectorCell
     }
     
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            let vector = dataSource[indexPath.row]
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            self.delegate?.didDeleteCell(indexPath.row, id: vector.id)
+            
+            tableView.reloadData()
+        }
+    }
 }
 
 extension SideMenuViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        self.delegate?.didSelectCell(indexPath.row, id: dataSource[indexPath.row].id)
+        let vector = dataSource[indexPath.row]
+        self.delegate?.didSelectCell(indexPath.row, id: vector.id)
     }
 }

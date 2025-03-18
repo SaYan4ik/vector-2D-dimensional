@@ -17,8 +17,7 @@ class CanvasViewModel {
     }
     
     func fetchVectors() {        
-        let vectors = RealmManager.shared.read(ofType: VectorModel.self)
-        self.vectors = vectors
+        self.vectors = RealmManager.shared.read(ofType: VectorModel.self)
     }
     
     func addVector(
@@ -40,8 +39,16 @@ class CanvasViewModel {
             length: length,
             angle: angle
         )
-        vectors.append(newVector)
         
+        vectors.append(newVector)
         RealmManager.shared.write(newVector)
+    }
+    
+    func removeVector(by id: UUID) {
+        if let id = vectors.firstIndex(where: { $0.id == id }) {
+            RealmManager.shared.delete(object: vectors[id])
+        }
+        
+        vectors = RealmManager.shared.read(ofType: VectorModel.self)
     }
 }
