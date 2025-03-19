@@ -10,7 +10,9 @@ import Combine
 
 
 class AddVectorViewController: UIViewController {
-    private var viewModel: CanvasViewModel
+    private var viewModel = AddVectorViewModel()
+    private var cancellables = Set<AnyCancellable>()
+    var vectorDidAdd: ((VectorModel) -> Void)?
     
     private var addVectorView: AddVectorView = {
         let view = AddVectorView()
@@ -43,7 +45,7 @@ class AddVectorViewController: UIViewController {
         return button
     }()
     
-    init(viewModel: CanvasViewModel) {
+    init(viewModel: AddVectorViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -56,6 +58,149 @@ class AddVectorViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupNavigationBar()
+        
+        bindViewModel()
+    }
+    
+    private func bindViewModel() {
+        viewModel.$startX
+            .removeDuplicates()
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard let self else { return }
+                
+                self.addVectorView.startXTextField.text = String(format: "%.2f", value)
+            }.store(in: &cancellables)
+        
+        viewModel.$startY
+            .removeDuplicates()
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard let self else { return }
+                
+                self.addVectorView.startYTextField.text = String(format: "%.2f", value)
+            }.store(in: &cancellables)
+        
+        viewModel.$endX
+            .removeDuplicates()
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard let self else { return }
+                
+                self.addVectorView.endXTextField.text = String(format: "%.2f", value)
+            }.store(in: &cancellables)
+        
+        viewModel.$endY
+            .removeDuplicates()
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard let self else { return }
+                
+                self.addVectorView.endYTextField.text = String(format: "%.2f", value)
+            }.store(in: &cancellables)
+        
+        viewModel.$length
+            .removeDuplicates()
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard let self else { return }
+                
+                self.addVectorView.lengthTextField.text = String(format: "%.2f", value)
+            }.store(in: &cancellables)
+        
+        viewModel.$angle
+            .removeDuplicates()
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard let self else { return }
+                
+                self.addVectorView.angleTextField.text = String(format: "%.2f", value)
+            }.store(in: &cancellables)
+        
+        addVectorView.startXTextField.textPublisher()
+            .sink { [weak self] value in
+                guard let self,
+                      let numericValue = Double(value)
+                else { return }
+                
+                
+                self.viewModel.updateCoordinates(startX: numericValue,
+                                                 startY: self.viewModel.startY,
+                                                 endX: self.viewModel.endX,
+                                                 endY: self.viewModel.endY
+                )
+            }.store(in: &cancellables)
+        
+        addVectorView.startYTextField.textPublisher()
+            .sink { [weak self] value in
+                guard let self,
+                      let numericValue = Double(value)
+                else { return }
+                
+                self.viewModel.updateCoordinates(startX: self.viewModel.startX,
+                                                 startY: numericValue,
+                                                 endX: self.viewModel.endX,
+                                                 endY: self.viewModel.endY
+                )
+            }.store(in: &cancellables)
+        
+        addVectorView.endXTextField.textPublisher()
+            .sink { [weak self] value in
+                guard let self,
+                      let numericValue = Double(value)
+                else { return }
+                
+                self.viewModel.updateCoordinates(startX: self.viewModel.startX,
+                                                 startY: self.viewModel.startY,
+                                                 endX: numericValue,
+                                                 endY: self.viewModel.endY
+                )
+            }.store(in: &cancellables)
+        
+        addVectorView.endYTextField.textPublisher()
+            .sink { [weak self] value in
+                guard let self,
+                      let numericValue = Double(value)
+                else { return }
+                
+                self.viewModel.updateCoordinates(startX: self.viewModel.startX,
+                                                 startY: self.viewModel.startY,
+                                                 endX: self.viewModel.endX,
+                                                 endY: numericValue
+                )
+            }.store(in: &cancellables)
+        
+        addVectorView.lengthTextField.textPublisher()
+            .sink { [weak self] value in
+                guard let self,
+                      let numericValue = Double(value)
+                else { return }
+                
+                self.viewModel.updateLengthAndAngle(startX: self.viewModel.startX,
+                                                    startY: self.viewModel.startY,
+                                                    length: numericValue,
+                                                    angle: self.viewModel.angle
+                )
+            }.store(in: &cancellables)
+        
+        addVectorView.angleTextField.textPublisher()
+            .sink { [weak self] value in
+                guard let self,
+                      let numericValue = Double(value)
+                else { return }
+                
+                self.viewModel.updateLengthAndAngle(startX: self.viewModel.startX,
+                                                    startY: self.viewModel.startY,
+                                                    length: self.viewModel.length,
+                                                    angle: numericValue
+                )
+            }.store(in: &cancellables)
     }
     
     private func setupUI()  {
@@ -94,7 +239,8 @@ class AddVectorViewController: UIViewController {
             alpha: 1.0
         )
         
-        viewModel.addVector(
+        let newVector = VectorModel(
+            id: UUID(),
             startX: startX,
             startY: startY,
             endX: endX,
@@ -104,173 +250,13 @@ class AddVectorViewController: UIViewController {
             angle: angle
         )
         
+        vectorDidAdd?(newVector)
+        
         navigationController?.popViewController(animated: true)
     }
     
     @objc private func didTapClose() {
         navigationController?.popViewController(animated: true)
-    }
-    
-}
-
-class AddVectorView: UIView {
-    lazy var mainContainerStack = stackViewBuilder(axis: .vertical,
-                                                   distribution: .fill,
-                                                   spacing: 8)
-    
-    lazy var startVectorLabelCords = createLabel(text: "Start cords X / Y",
-                                                 font: .boldSystemFont(ofSize: 17))
-    
-    lazy var endVectorLabelCords = createLabel(text: "End cords X / Y",
-                                               font: .boldSystemFont(ofSize: 17))
-    
-    lazy var otherParamsLabel = createLabel(text: "Other Params",
-                                            font: .boldSystemFont(ofSize: 17))
-    
-    lazy var startContainerStack = stackViewBuilder(axis: .horizontal,
-                                                    distribution: .fillProportionally,
-                                                    spacing: 5)
-    
-    lazy var startXTextField = textFieldBuilderForCords(with: "Start X")
-    lazy var startYTextField = textFieldBuilderForCords(with: "Start Y")
-    
-    lazy var endContainerStack = stackViewBuilder(axis: .horizontal,
-                                                  distribution: .fillProportionally,
-                                                  spacing: 5)
-    
-    lazy var endXTextField = textFieldBuilderForCords(with: "End X")
-    lazy var endYTextField = textFieldBuilderForCords(with: "End Y")
-    
-    lazy var otherParamsContainerStack = stackViewBuilder(axis: .horizontal,
-                                                          distribution: .fillProportionally,
-                                                          spacing: 5)
-    
-    lazy var lengthTextField = textFieldBuilderForCords(with: "Length")
-    lazy var angleTextField = textFieldBuilderForCords(with: "Degree")
-    
-    override init(frame: CGRect = .zero) {
-        super.init(frame: frame)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func createLabel(text: String,
-                             font: UIFont) -> UILabel {
-        let label = UILabel()
-        label.text = text
-        label.font = font
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }
-    
-    private func textFieldBuilderForCords(with placeholder: String) -> UITextField {
-        let textField = UITextField()
-        textField.placeholder = placeholder
-        textField.backgroundColor = .white
-        textField.textColor = .black
-        textField.layer.cornerRadius = 6
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10))
-        textField.leftViewMode = .always
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.heightAnchor.constraint(equalToConstant: 35).isActive = true
-        textField.keyboardType = .decimalPad
-        return textField
-    }
-    
-    private func stackViewBuilder(axis: NSLayoutConstraint.Axis, distribution: UIStackView.Distribution ,spacing: CGFloat) -> UIStackView {
-        let stackView = UIStackView()
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.axis = axis
-        stackView.spacing = spacing
-        stackView.alignment = .fill
-        stackView.distribution = distribution
-        return stackView
-    }
-    
-    private func setupUI() {
-        backgroundColor = .clear
-        addSubview(mainContainerStack)
-        
-        mainContainerStack.addArrangedSubview(startVectorLabelCords)
-        mainContainerStack.addArrangedSubview(startContainerStack)
-        startContainerStack.addArrangedSubview(startXTextField)
-        startContainerStack.addArrangedSubview(startYTextField)
-        
-        mainContainerStack.addArrangedSubview(endVectorLabelCords)
-        mainContainerStack.addArrangedSubview(endContainerStack)
-        endContainerStack.addArrangedSubview(endXTextField)
-        endContainerStack.addArrangedSubview(endYTextField)
-        
-        mainContainerStack.addArrangedSubview(otherParamsLabel)
-        mainContainerStack.addArrangedSubview(otherParamsContainerStack)
-        otherParamsContainerStack.addArrangedSubview(lengthTextField)
-        otherParamsContainerStack.addArrangedSubview(angleTextField)
-        
-        NSLayoutConstraint.activate([
-            mainContainerStack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            mainContainerStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            mainContainerStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            mainContainerStack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
-        ])
-        
-        startXTextField.delegate = self
-        startYTextField.delegate = self
-        endXTextField.delegate = self
-        endYTextField.delegate = self
-        lengthTextField.delegate = self
-        angleTextField.delegate = self
-    }
-    
-    private func updateFields() {
-        guard let startX = Double(startXTextField.text ?? "0"),
-              let startY = Double(startYTextField.text ?? "0"),
-              let endX = Double(endXTextField.text ?? "0"),
-              let endY = Double(endYTextField.text ?? "0") else {
-            return
-        }
-        
-        let dx = endX - startX
-        let dy = endY - startY
-        let length = sqrt(dx * dx + dy * dy)
-        lengthTextField.text = String(format: "%.2f", length)
-        
-        let angle = atan2(dy, dx) * 180 / .pi
-        angleTextField.text = String(format: "%.2f", angle)
-    }
-    
-    private func updateCoordinatesFromLengthAndAngle() {
-        guard let startX = Double(startXTextField.text ?? "0"),
-              let startY = Double(startYTextField.text ?? "0"),
-              let length = Double(lengthTextField.text ?? "0"),
-              let angle = Double(angleTextField.text ?? "0") else {
-            return
-        }
-        
-        let radians = angle * .pi / 180
-        
-        let endX = startX + length * cos(radians)
-        let endY = startY + length * sin(radians)
-        
-        endXTextField.text = String(format: "%.2f", endX)
-        endYTextField.text = String(format: "%.2f", endY)
-    }
-}
-
-extension AddVectorView: UITextFieldDelegate {
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        if textField == lengthTextField || textField == angleTextField {
-            updateCoordinatesFromLengthAndAngle()
-        } else {
-            updateFields()
-        }
-    }
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
     }
 }
 

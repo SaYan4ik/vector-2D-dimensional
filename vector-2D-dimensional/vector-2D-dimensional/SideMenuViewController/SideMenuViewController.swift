@@ -97,7 +97,6 @@ extension SideMenuViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let vector = dataSource[indexPath.row]
-            tableView.deleteRows(at: [indexPath], with: .fade)
             self.delegate?.didDeleteCell(indexPath.row, id: vector.id)
             
             tableView.reloadData()
