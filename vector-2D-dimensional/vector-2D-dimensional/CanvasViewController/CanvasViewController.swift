@@ -47,10 +47,7 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
         super.viewDidLoad()
         setupScene()
         setupNavBar()
-        
-        sideMenuWidth = view.bounds.width * 0.33
         configureSideMenu()
-        
         bindViewModel()
         scene.addGesture()
     }
@@ -83,7 +80,19 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     }
     
     @objc func addVector() {
-        let addVectorVC = AddVectorViewController(viewModel: viewModel)
+        let addVectorViewModel = AddVectorViewModel()
+        let addVectorVC = AddVectorViewController(viewModel: addVectorViewModel)
+        
+        addVectorVC.vectorDidAdd = { [weak self] vector in
+            self?.viewModel.addVector(startX: vector.startX,
+                                startY: vector.startX,
+                                endX: vector.endX,
+                                endY: vector.endY,
+                                color: vector.color,
+                                length: vector.length,
+                                angle: vector.angle
+            )
+        }
         navigationController?.pushViewController(addVectorVC, animated: true)
     }
 }
