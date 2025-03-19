@@ -138,12 +138,12 @@ class CanvasScene: SKScene {
             
         } else if let pointNode = selectedNode as? SKShapeNode,
                   let vectorNode = pointNode.parent as? VectorNode {
-            pointNode.position = location
+            var newLocation = location
             
             if pointNode == vectorNode.startPointNode {
-                vectorNode.startPoint = location
+                vectorNode.updateNodePos(point: &newLocation, isStartPoint: true)
             } else if pointNode == vectorNode.endPointNode {
-                vectorNode.endPoint = location
+                vectorNode.updateNodePos(point: &newLocation, isStartPoint: false)
             }
             
             updateVectorInRealm(vectorNode)

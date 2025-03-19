@@ -27,7 +27,8 @@ class VectorNode: SKNode {
     }
     
     private var color: UIColor
-    
+    private var snapTreshold: CGFloat = 10.0
+
     init(id: UUID, startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
         self.id = id
         self.startPoint = startPoint
@@ -146,5 +147,30 @@ class VectorNode: SKNode {
         lineNode?.run(sequence)
         startPointNode?.run(sequence)
         endPointNode?.run(sequence)
+    }
+    
+    private func snapNode(point: CGPoint, startPoint: CGPoint) -> CGPoint {
+        var snappedPoint = point
+        
+        if abs(point.y - startPoint.y) < snapTreshold {
+            snappedPoint.y = startPoint.y
+        }
+        
+        if abs(point.x - startPoint.x) < snapTreshold {
+            snappedPoint.x = startPoint.x
+        }
+        
+        return snappedPoint
+    }
+    
+    func updateNodePos(point: inout CGPoint, isStartPoint: Bool) {
+        let refPoint = isStartPoint ? endPoint : startPoint
+        point = snapNode(point: point, startPoint: refPoint)
+        
+        if isStartPoint {
+            startPoint = point
+        } else {
+            endPoint = point
+        }
     }
 }

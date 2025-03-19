@@ -267,7 +267,7 @@ extension AddVectorView: UITextFieldDelegate {
             updateFields()
         }
     }
-    
+        
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
