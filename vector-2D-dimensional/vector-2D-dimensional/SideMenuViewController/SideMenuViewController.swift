@@ -19,15 +19,17 @@ class SideMenuViewController: UIViewController {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(SideMenuTableViewCell.self, forCellReuseIdentifier: String(describing: SideMenuTableViewCell.self))
-        tableView.backgroundColor = .cyan
+        tableView.backgroundColor = Themes.primaryBackground
         tableView.estimatedRowHeight = 65
         tableView.rowHeight = UITableView.automaticDimension
+        
         return tableView
     }()
     
     private var cancellables = Set<AnyCancellable>()
     weak var delegate: SideMenuViewControllerDelegate?
     var dataSource: [VectorModel] = []
+    let gradientLayer = CAGradientLayer()
     
     private var viewModel: SideMenuViewModel
     
@@ -63,7 +65,6 @@ class SideMenuViewController: UIViewController {
     
     private func setupUI() {
         view.addSubview(tableView)
-        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),

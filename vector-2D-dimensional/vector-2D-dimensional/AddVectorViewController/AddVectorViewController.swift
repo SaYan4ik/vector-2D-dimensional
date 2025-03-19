@@ -37,6 +37,12 @@ class AddVectorViewController: UIViewController {
             "Save",
             for: .normal
         )
+        
+        button.setTitleColor(
+            Themes.tintNavigationBar,
+            for: .normal
+        )
+        
         button.addTarget(
             self,
             action: #selector(saveButtonTapped),

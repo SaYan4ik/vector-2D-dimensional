@@ -16,6 +16,7 @@ class SideMenuTableViewCell: UITableViewCell {
         label.textAlignment = .center
         label.adjustsFontSizeToFitWidth = true
         label.text = "Vector"
+        label.textColor = Themes.textPrimary
         return label
     }()
     
@@ -26,6 +27,7 @@ class SideMenuTableViewCell: UITableViewCell {
         label.textAlignment = .center
         label.adjustsFontSizeToFitWidth = true
         label.text = "Length"
+        label.textColor = Themes.textPrimary
         return label
     }()
     
@@ -47,6 +49,8 @@ class SideMenuTableViewCell: UITableViewCell {
         return stack
     }()
     
+    let gradientLayer = CAGradientLayer()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         layoutElements()
@@ -57,24 +61,31 @@ class SideMenuTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func layoutElements() {
-        layoutCell()
-        layoutTitleLabel()
-        layoutContainerView()
+    override func layoutSublayers(of layer: CALayer) {
+        super.layoutSublayers(of: self.layer)
+        gradientLayer.frame = contentView.bounds
+        
+        let colorSet = [Themes.primaryBackgroundSecondary,
+                        Themes.tintNavigationBar]
+        let location = [0.2, 1.0]
+        
+        contentView.addGradient(with: gradientLayer, colorSet: colorSet, locations: location)
     }
     
-    private func layoutCell() {
-        self.contentView.backgroundColor = .yellow
+    private func layoutElements() {
+        layoutTitleLabel()
+        layoutContainerView()
     }
     
     private func layoutTitleLabel() {
         containerStack.addArrangedSubview(vectorLengthLabel)
         containerStack.addArrangedSubview(vectorCordsLabel)
-
     }
     
     private func layoutContainerView() {
         self.contentView.addSubview(containerStack)
+        contentView.layer.cornerRadius = 8
+        
         NSLayoutConstraint.activate([
             containerStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 16),
             containerStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
@@ -93,5 +104,27 @@ class SideMenuTableViewCell: UITableViewCell {
         let formedEndY = String(format: "%.2f", vector.endY)
         
         vectorCordsLabel.text = "(\(formedStartX), \(formedStartY))(\(formedEndX), \(formedEndY))"
+    }
+    
+}
+
+extension UIView {
+    func addGradient(with layer: CAGradientLayer, gradientFrame: CGRect? = nil, colorSet: [UIColor],
+                     locations: [Double], startEndPoints: (CGPoint, CGPoint)? = nil) {
+        layer.frame = gradientFrame ?? self.bounds
+        layer.frame.origin = .zero
+
+        let layerColorSet = colorSet.map { $0.cgColor }
+        let layerLocations = locations.map { $0 as NSNumber }
+
+        layer.colors = layerColorSet
+        layer.locations = layerLocations
+
+        if let startEndPoints = startEndPoints {
+            layer.startPoint = startEndPoints.0
+            layer.endPoint = startEndPoints.1
+        }
+
+        self.layer.insertSublayer(layer, at: 0)
     }
 }

@@ -22,6 +22,7 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(UIImage(systemName: "line.horizontal.3"), for: .normal)
+        button.tintColor = Themes.tintNavigationBar
         button.addTarget(self, action: #selector(hamburgerMenuButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -75,6 +76,7 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     private func setupNavBar() {
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addVector))
+        addButton.tintColor = Themes.tintNavigationBar
         navigationItem.rightBarButtonItem = addButton
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: hamburgerMenuButton)
     }
@@ -132,6 +134,17 @@ extension CanvasViewController {
     
     @objc private func hamburgerMenuButtonTapped(_ sender: UIButton) {
         self.sideMenuState(expanded: self.isSideMenuShown ? false : true)
+        
+        let hamburgerImage = UIImage(systemName: "line.horizontal.3")
+        let arrowBackImage = UIImage(systemName: "arrowshape.backward")
+        UIView.animate(withDuration: 3) {
+            
+            sender.setImage(self.isSideMenuShown ? hamburgerImage : arrowBackImage, for: .normal)
+        } completion: { isFinished in
+            guard isFinished else { return }
+        }
+
+
     }
     
     private func sideMenuState(expanded: Bool) {
