@@ -72,7 +72,6 @@ class AddVectorViewController: UIViewController {
         viewModel.$startX
             .removeDuplicates()
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -82,7 +81,6 @@ class AddVectorViewController: UIViewController {
         viewModel.$startY
             .removeDuplicates()
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -92,7 +90,6 @@ class AddVectorViewController: UIViewController {
         viewModel.$endX
             .removeDuplicates()
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -102,7 +99,6 @@ class AddVectorViewController: UIViewController {
         viewModel.$endY
             .removeDuplicates()
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -112,7 +108,6 @@ class AddVectorViewController: UIViewController {
         viewModel.$length
             .removeDuplicates()
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -122,7 +117,6 @@ class AddVectorViewController: UIViewController {
         viewModel.$angle
             .removeDuplicates()
             .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
