@@ -10,6 +10,7 @@ import UIKit
 
 class CanvasScene: SKScene {
     private var vectors: [VectorModel] = []
+    private var vectorsNode: [VectorNode] = []
     private var dragIsStart: Bool = false
     private var selectedNode: SKNode?
     private var initialTouchPoint: CGPoint = .zero
@@ -69,6 +70,7 @@ class CanvasScene: SKScene {
             color: vector.color
         )
         
+        vectorsNode.append(vectorNode)
         addChild(vectorNode)
     }
     
@@ -141,9 +143,9 @@ class CanvasScene: SKScene {
             var newLocation = location
             
             if pointNode == vectorNode.startPointNode {
-                vectorNode.updateNodePos(point: &newLocation, isStartPoint: true)
+                vectorNode.updateNodePos(point: &newLocation, isStartPoint: true, vectors: vectorsNode)
             } else if pointNode == vectorNode.endPointNode {
-                vectorNode.updateNodePos(point: &newLocation, isStartPoint: false)
+                vectorNode.updateNodePos(point: &newLocation, isStartPoint: false, vectors: vectorsNode)
             }
             
             updateVectorInRealm(vectorNode)

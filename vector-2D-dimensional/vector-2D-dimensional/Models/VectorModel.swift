@@ -28,7 +28,16 @@ class VectorModel: Object {
         }
     }
     
-    convenience init(id: UUID, startX: Double, startY: Double, endX: Double, endY: Double, color: UIColor, length: Double, angle: Double) {
+    convenience init(
+        id: UUID,
+        startX: Double,
+        startY: Double,
+        endX: Double,
+        endY: Double,
+        color: UIColor,
+        length: Double,
+        angle: Double
+    ) {
         self.init()
         self.id = id
         self.startX = startX
