@@ -71,7 +71,7 @@ class AddVectorViewController: UIViewController {
     private func bindViewModel() {
         viewModel.$startX
             .removeDuplicates()
-            .debounce(for: 2, scheduler: DispatchQueue.main)
+            .debounce(for: 1, scheduler: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -80,7 +80,7 @@ class AddVectorViewController: UIViewController {
         
         viewModel.$startY
             .removeDuplicates()
-            .debounce(for: 2, scheduler: DispatchQueue.main)
+            .debounce(for: 1, scheduler: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -89,7 +89,7 @@ class AddVectorViewController: UIViewController {
         
         viewModel.$endX
             .removeDuplicates()
-            .debounce(for: 2, scheduler: DispatchQueue.main)
+            .debounce(for: 1, scheduler: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -98,7 +98,7 @@ class AddVectorViewController: UIViewController {
         
         viewModel.$endY
             .removeDuplicates()
-            .debounce(for: 2, scheduler: DispatchQueue.main)
+            .debounce(for: 1, scheduler: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -107,7 +107,7 @@ class AddVectorViewController: UIViewController {
         
         viewModel.$length
             .removeDuplicates()
-            .debounce(for: 2, scheduler: DispatchQueue.main)
+            .debounce(for: 1, scheduler: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 
@@ -116,7 +116,7 @@ class AddVectorViewController: UIViewController {
         
         viewModel.$angle
             .removeDuplicates()
-            .debounce(for: 2, scheduler: DispatchQueue.main)
+            .debounce(for: 1, scheduler: DispatchQueue.main)
             .sink { [weak self] value in
                 guard let self else { return }
                 

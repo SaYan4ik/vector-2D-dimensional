@@ -66,7 +66,7 @@ class AddVectorView: UIView {
     private func textFieldBuilderForCords(with placeholder: String) -> UITextField {
         let textField = UITextField()
         textField.placeholder = placeholder
-        textField.backgroundColor = .white
+        textField.backgroundColor = Themes.tintNavigationBar.withAlphaComponent(0.8)
         textField.textColor = .black
         textField.layer.cornerRadius = 6
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10))
