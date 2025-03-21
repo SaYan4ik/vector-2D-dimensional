@@ -13,6 +13,7 @@ class VectorNode: SKNode {
     var startPointNode: SKShapeNode?
     var endPointNode: SKShapeNode?
     var lineNode: SKShapeNode?
+    var rightAngleIndicator: SKShapeNode?
     
     var startPoint: CGPoint {
         didSet {
@@ -99,9 +100,55 @@ class VectorNode: SKNode {
     }
     
     private func angleBetweenPoints(_ start: CGPoint, _ end: CGPoint) -> CGFloat {
-        let deltaX = end.x - start.x
-        let deltaY = end.y - start.y
-        return atan2(deltaY, deltaX)
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        
+        return atan2(dy, dx)
+    }
+    
+    private func calculateVector(_ start: CGPoint, _ end: CGPoint) -> CGPoint {
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        
+        return CGPoint(x: dx, y: dy)
+    }
+    
+    private func lengthOfVector(_ vector: CGPoint) -> CGFloat {
+        
+        return sqrt(vector.x * vector.x + vector.y * vector.y)
+    }
+    
+    private func angleBetweenVectors(_ vector1: CGPoint, _ vector2: CGPoint) -> CGFloat {
+        let dotProduct = vector1.x * vector2.x + vector1.y * vector2.y
+        let magnitude1 = sqrt(vector1.x * vector1.x + vector1.y * vector1.y)
+        let magnitude2 = sqrt(vector2.x * vector2.x + vector2.y * vector2.y)
+        let cosAlfa = dotProduct/(magnitude1 * magnitude2)
+        
+        return acos(cosAlfa)
+    }
+    
+    private func angelInDegree(acos: CGFloat) -> CGFloat {
+        let degree = acos * 180 / .pi
+        
+        return degree
+    }
+    
+    private func checkIfAngle90Degree(with treshold: CGFloat = 1, for angle: CGFloat) -> Bool {
+        let lowerBound: CGFloat = 90 - treshold
+        let upperBound: CGFloat = 90 + treshold
+        
+        return (lowerBound...upperBound).contains(angle)
+    }
+    
+    func perpendicularVector(from vector: CGPoint) -> CGPoint {
+        
+        return CGPoint(x: -vector.y, y: vector.x)
+    }
+    
+    private func normalize(vector: CGPoint)  -> CGPoint {
+        let length = sqrt(vector.x * vector.x + vector.y * vector.y)
+        
+        return CGPoint(x: vector.x / length, y: vector.y / length)
     }
     
     private func createArrowNode(position: CGPoint, angle: CGFloat) -> SKShapeNode {
@@ -148,8 +195,22 @@ class VectorNode: SKNode {
         startPointNode?.run(sequence)
         endPointNode?.run(sequence)
     }
+
     
-    private func snapNode(point: CGPoint, startPoint: CGPoint) -> CGPoint {
+    func updateNodePos(point: inout CGPoint, isStartPoint: Bool, vectors: [VectorNode]) {
+        let refPoint = isStartPoint ? endPoint : startPoint
+        point = snapNodeByVerticalOrHorizontal(point: point, startPoint: refPoint)
+        point = snapToOtherVectors(point: point, vectors: vectors)
+//        point = checkIfAngle90Degree(point: point, vector: vectors, isStartPoint: isStartPoint)
+        
+        if isStartPoint {
+            startPoint = point
+        } else {
+            endPoint = point
+        }
+    }
+    
+    private func snapNodeByVerticalOrHorizontal(point: CGPoint, startPoint: CGPoint) -> CGPoint {
         var snappedPoint = point
         
         if abs(point.y - startPoint.y) < snapTreshold {
@@ -163,14 +224,58 @@ class VectorNode: SKNode {
         return snappedPoint
     }
     
-    func updateNodePos(point: inout CGPoint, isStartPoint: Bool) {
-        let refPoint = isStartPoint ? endPoint : startPoint
-        point = snapNode(point: point, startPoint: refPoint)
+    private func snapToOtherVectors(point: CGPoint, vectors: [VectorNode]) -> CGPoint {
+        var snappedPoint = point
         
-        if isStartPoint {
-            startPoint = point
-        } else {
-            endPoint = point
+        for vector in vectors {
+            if vector.id != self.id {
+                if abs(point.x - vector.startPoint.x) < snapTreshold && abs(point.y - vector.startPoint.y) < snapTreshold {
+                    snappedPoint = vector.startPoint
+                    break
+                }
+                
+                if abs(point.x - vector.endPoint.x) < snapTreshold && abs(point.y - vector.endPoint.y) < snapTreshold {
+                    snappedPoint = vector.endPoint
+                    break
+                }
+            }
         }
+        
+        return snappedPoint
     }
+    
+    private func checkIfAngle90Degree(point: CGPoint, vector: [VectorNode], isStartPoint: Bool) -> CGPoint {
+        var snappedPoint = point
+        
+        let calculateSelfVector = calculateVector(self.startPoint, endPoint)
+                
+        for vector in vector {
+            if vector.id != self.id {
+                let calculateOtherVector = calculateVector(vector.startPoint, vector.endPoint)
+                let angle = angleBetweenVectors(calculateSelfVector, calculateOtherVector)
+                let angleInDegree = angelInDegree(acos: angle)
+                
+                
+                if checkIfAngle90Degree(for: angleInDegree) {
+                    print("Угол \(angleInDegree) близок к 90 градусам")
+                    let perpendVect = perpendicularVector(from: calculateOtherVector)
+                    let normalize = normalize(vector: perpendVect)
+                    
+                    let length = sqrt(calculateSelfVector.x * calculateSelfVector.x + calculateSelfVector.y * calculateSelfVector.y)
+                    let perpendSelfVector = CGPoint(x: normalize.x * length, y: normalize.y * length)
+                    
+                    if isStartPoint {
+                        snappedPoint = CGPoint(x: startPoint.x + perpendSelfVector.x, y: startPoint.y + perpendSelfVector.y)
+                        break
+                    } else {
+                        snappedPoint = CGPoint(x: endPoint.x - perpendSelfVector.x, y: endPoint.y - perpendSelfVector.y)
+                        break
+                    }
+                }
+            }
+        }
+        
+        return snappedPoint
+    }
+    
 }
