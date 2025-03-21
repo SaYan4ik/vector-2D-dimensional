@@ -149,7 +149,19 @@ class VectorNode: SKNode {
         endPointNode?.run(sequence)
     }
     
-    private func snapNode(point: CGPoint, startPoint: CGPoint) -> CGPoint {
+    func updateNodePos(point: inout CGPoint, isStartPoint: Bool, vectors: [VectorNode]) {
+        let refPoint = isStartPoint ? endPoint : startPoint
+        point = snapNodeByVerticalOrHorizontal(point: point, startPoint: refPoint)
+        point = snapToOtherVectors(point: point, vectors: vectors)
+        
+        if isStartPoint {
+            startPoint = point
+        } else {
+            endPoint = point
+        }
+    }
+    
+    private func snapNodeByVerticalOrHorizontal(point: CGPoint, startPoint: CGPoint) -> CGPoint {
         var snappedPoint = point
         
         if abs(point.y - startPoint.y) < snapTreshold {
@@ -163,14 +175,23 @@ class VectorNode: SKNode {
         return snappedPoint
     }
     
-    func updateNodePos(point: inout CGPoint, isStartPoint: Bool) {
-        let refPoint = isStartPoint ? endPoint : startPoint
-        point = snapNode(point: point, startPoint: refPoint)
+    private func snapToOtherVectors(point: CGPoint, vectors: [VectorNode]) -> CGPoint {
+        var snappedPoint = point
         
-        if isStartPoint {
-            startPoint = point
-        } else {
-            endPoint = point
+        for vector in vectors {
+            if vector.id != self.id {
+                if abs(point.x - vector.startPoint.x) < snapTreshold && abs(point.y - vector.startPoint.y) < snapTreshold {
+                    snappedPoint = vector.startPoint
+                    break
+                }
+                
+                if abs(point.x - vector.endPoint.x) < snapTreshold && abs(point.y - vector.endPoint.y) < snapTreshold {
+                    snappedPoint = vector.endPoint
+                    break
+                }
+            }
         }
+        
+        return snappedPoint
     }
 }
