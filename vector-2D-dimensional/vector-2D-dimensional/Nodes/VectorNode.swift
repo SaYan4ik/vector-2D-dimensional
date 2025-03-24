@@ -59,7 +59,7 @@ class VectorNode: SKNode {
         let shapeNode = SKShapeNode(path: path)
         shapeNode.strokeColor = color
         shapeNode.name = "Vector line"
-        shapeNode.lineWidth = 1
+        shapeNode.lineWidth = 3
         lineNode = shapeNode
         addChild(shapeNode)
     }
@@ -89,19 +89,16 @@ class VectorNode: SKNode {
         let path = CGMutablePath()
         path.move(to: startPoint)
         path.addLine(to: endPoint)
-        
-        lineNode?.path = path.copy()
+        lineNode?.path = path
         startPointNode?.position = startPoint
+        
         endPointNode?.zRotation = zRotation()
         endPointNode?.position = endPoint
-        
     }
-    
     
     func move(by translation: CGPoint) {
         startPoint = CGPoint(x: startPoint.x + translation.x, y: startPoint.y + translation.y)
         endPoint = CGPoint(x: endPoint.x + translation.x, y: endPoint.y + translation.y)
-        
     }
     
     func zRotation() -> CGFloat {
@@ -131,7 +128,6 @@ class VectorNode: SKNode {
         
         let increaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
                 let progress = elapsedTime / CGFloat(duration)
-            
                 self.lineNode?.lineWidth = 1.0 + 3.0 * progress
                 self.startPointNode?.lineWidth = 1.0 + 3.0 * progress
                 self.endPointNode?.lineWidth = 1.0 + 3.0 * progress

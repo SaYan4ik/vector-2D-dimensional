@@ -12,8 +12,8 @@ class AddVectorViewModel {
     @Published var startX: Double = 0
     @Published var startY: Double = 0
     @Published var endX: Double = 0
-    @Published var endY: Double = 1
-    @Published var length: Double = 1
+    @Published var endY: Double = 10
+    @Published var length: Double = 10
     @Published var angle: Double = 90
 
     func updateCoordinates(startX: Double, startY: Double, endX: Double, endY: Double) {

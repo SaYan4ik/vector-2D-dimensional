@@ -14,7 +14,7 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     private var scene: CanvasScene = {
         let scene = CanvasScene()
-        scene.backgroundColor = .lightGray
+        scene.backgroundColor = .white
         return scene
     }()
     
@@ -55,7 +55,6 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     private func bindViewModel() {
         viewModel.$vectors.sink { [weak self] vectors in
-//            print(vectors)
             self?.scene.updateVectors(vectors)
         }.store(in: &cancellables)
         

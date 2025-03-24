@@ -14,10 +14,11 @@ class CanvasScene: SKScene {
     private var dragIsStart: Bool = false
     private var selectedNode: SKNode?
     private var initialTouchPoint: CGPoint = .zero
+    private let height = 4000.0
+    private let width = 4000.0
     
     private var rightAngleIndicator: SKShapeNode?
     private let cameraNode = SKCameraNode()
-    private var lastTouchPosition: CGPoint?
     var dragDidEnd: (() -> Void)?
     
     override init(size: CGSize = .zero) {
@@ -29,10 +30,45 @@ class CanvasScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
-        self.camera = cameraNode
-        addChild(cameraNode)
+        DispatchQueue.main.async {
+//            self.drawGridCells()
+            self.setupCamera(for: view)
+        }
+    }
+    
+    private func drawGridCells() {
+        let cellSize: CGFloat = 30.0
+        let rows = Int( height / cellSize)
+        let cols = Int( width / cellSize)
         
-        handlePanCanvas(on: view)
+        for col in 0...cols {
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: CGFloat(col) * cellSize, y: 0))
+            path.addLine(to: CGPoint(x: CGFloat(col) * cellSize, y: height))
+            
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .gray
+            line.lineWidth = 1.0
+            self.addChild(line)
+        }
+        
+        for row in 0...rows {
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: 0, y: CGFloat(row) * cellSize))
+            path.addLine(to: CGPoint(x: width, y: CGFloat(row) * cellSize))
+            
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .gray
+            line.lineWidth = 1.0
+            self.addChild(line)
+        }
+    }
+    
+    private func setupCamera(for view: SKView) {
+        self.camera = self.cameraNode
+        self.addChild(self.cameraNode)
+        
+        self.handlePanCanvas(on: view)
     }
     
     private func handlePanCanvas(on view: SKView) {
@@ -95,6 +131,7 @@ class CanvasScene: SKScene {
             case .ended, .cancelled:
                 longPressEnded()
                 selectedNode = nil
+                dragDidEnd?()
             default:
                 break
         }
@@ -221,7 +258,6 @@ class CanvasScene: SKScene {
                     addChild(rightAngleIndicator!)
                 }
                 rightAngleIndicator?.addChild(square)
-                
             }
         }
     }
@@ -243,8 +279,6 @@ class CanvasScene: SKScene {
             vectorModel.angle = atan2(dy, dx)
             realm.add(vectorModel, update: .modified)
         }
-        
-        dragDidEnd?()
     }
     
     private func longPressEnded() {

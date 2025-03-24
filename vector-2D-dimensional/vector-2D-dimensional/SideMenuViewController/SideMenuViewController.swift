@@ -70,6 +70,7 @@ class SideMenuViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+    
     func updateVectors() {
         viewModel.fetchVectors()
     }
@@ -97,6 +98,7 @@ extension SideMenuViewController: UITableViewDataSource {
             let vector = dataSource[indexPath.row]
             self.delegate?.didDeleteCell(indexPath.row, id: vector.id)
             
+            updateVectors()
             tableView.reloadData()
         }
     }
