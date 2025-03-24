@@ -9,7 +9,7 @@ import UIKit
 import Combine
 
 
-class AddVectorView: UIView {
+final class AddVectorView: UIView {
     lazy var mainContainerStack = stackViewBuilder(axis: .vertical,
                                                    distribution: .fill,
                                                    spacing: 8)

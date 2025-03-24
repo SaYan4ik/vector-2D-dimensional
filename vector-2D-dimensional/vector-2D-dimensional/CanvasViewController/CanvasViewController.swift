@@ -10,7 +10,7 @@ import Combine
 import SpriteKit
 
 
-class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
+final class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     private var scene: CanvasScene = {
         let scene = CanvasScene()

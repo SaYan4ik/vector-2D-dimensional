@@ -8,17 +8,21 @@
 import SpriteKit
 import UIKit
 
-class CanvasScene: SKScene {
-    private var vectors: [VectorModel] = []
-    private var vectorsNode: [VectorNode] = []
+final class CanvasScene: SKScene {
+//    private var vectors: [VectorModel] = []
+//    private var vectorsNode: [VectorNode] = []
     private var dragIsStart: Bool = false
     private var selectedNode: SKNode?
     private var initialTouchPoint: CGPoint = .zero
     
     private var rightAngleIndicator: SKShapeNode?
-    private let cameraNode = SKCameraNode()
+    let cameraNode = SKCameraNode()
     var dragDidEnd: (() -> Void)?
     
+    private lazy var vectorManager: VectorManager = {
+        VectorManager(scene: self)
+    }()
+
     override init(size: CGSize = .zero) {
         super.init(size: size)
     }
@@ -27,10 +31,12 @@ class CanvasScene: SKScene {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
     override func didMove(to view: SKView) {
         DispatchQueue.main.async {
             self.setupCamera(for: view)
         }
+        
     }
     
     private func drawGridCells() {
@@ -91,26 +97,9 @@ class CanvasScene: SKScene {
     }
     
     func updateVectors(_ vectors: [VectorModel]) {
-        self.vectors = vectors
-        removeAllChildren()
-        
-        for vector in vectors {
-            drawVectorNode(vector)
-        }
+        vectorManager.updateVectors(vectors)
     }
-    
-    private func drawVectorNode(_ vector: VectorModel) {
-        let vectorNode = VectorNode(
-            id: vector.id,
-            startPoint: CGPoint(x: vector.startX, y: vector.startY),
-            endPoint: CGPoint(x: vector.endX, y: vector.endY),
-            color: vector.color
-        )
-        
-        vectorsNode.append(vectorNode)
-        addChild(vectorNode)
-    }
-    
+
     func addGesture(){
         guard let view else { return }
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
@@ -143,22 +132,22 @@ class CanvasScene: SKScene {
     private func longPressBegin(location: CGPoint) {
         let cutPressDistance = 30.0
         let snapTreshold = 50.0
+        var vectorNodes = vectorManager.vectorNodes
+        var ts = vectorNodes.map { (location - $0.startPoint).dot($0.v) / $0.v.norm() / $0.v.norm() }
         
-        var ts = vectorsNode.map { (location - $0.startPoint).dot($0.v) / $0.v.norm() / $0.v.norm() }
+        ts = ts.indices.map { ts[$0] < cutPressDistance / vectorNodes[$0].v.norm() ? 0: ts[$0] }
+        ts = ts.indices.map { ts[$0] > 1 - cutPressDistance / vectorNodes[$0].v.norm() ? 1: ts[$0] }
         
-        ts = ts.indices.map { ts[$0] < cutPressDistance / vectorsNode[$0].v.norm() ? 0: ts[$0] }
-        ts = ts.indices.map { ts[$0] > 1 - cutPressDistance / vectorsNode[$0].v.norm() ? 1: ts[$0] }
-        
-        let distances = vectorsNode.indices.map { (location - (vectorsNode[$0].startPoint + vectorsNode[$0].v * ts[$0])).norm() }
+        let distances = vectorNodes.indices.map { (location - (vectorNodes[$0].startPoint + vectorNodes[$0].v * ts[$0])).norm() }
         let argmin = distances.indices.min { distances[$0] < distances[$1] }!
         
         if distances[argmin] < snapTreshold {
             if ts[argmin] == 0 {
-                selectedNode = vectorsNode[argmin].startPointNode
+                selectedNode = vectorNodes[argmin].startPointNode
             } else if ts[argmin] == 1 {
-                selectedNode = vectorsNode[argmin].endPointNode
+                selectedNode = vectorNodes[argmin].endPointNode
             } else {
-                selectedNode = vectorsNode[argmin]
+                selectedNode = vectorNodes[argmin]
                 dragIsStart = true
                 initialTouchPoint = location
             }
@@ -170,6 +159,8 @@ class CanvasScene: SKScene {
             print("Node not selected")
             return
         }
+        
+        var vectorNodes = vectorManager.vectorNodes
         
         if dragIsStart, let vectorNode = selectedNode as? VectorNode {
             let translation = location - initialTouchPoint
@@ -190,7 +181,7 @@ class CanvasScene: SKScene {
             newLocation.y = abs(location.y - otherPoint.y) < 10.0 ? otherPoint.y : location.y
             
             
-            let otherNodes = vectorsNode.filter { $0.id != vectorNode.id }
+            let otherNodes = vectorNodes.filter { $0.id != vectorNode.id }
             if !otherNodes.isEmpty {
                 var snapTargets = otherNodes.map { $0.endPoint }
                 snapTargets.append(contentsOf: otherNodes.map { $0.startPoint })
@@ -268,23 +259,7 @@ class CanvasScene: SKScene {
     }
     
     private func updateVectorInRealm(_ vectorNode: VectorNode) {
-        guard let vectorModel = vectors.first(where: { $0.id == vectorNode.id }) else {
-            return
-        }
-        
-        let dx = Double(vectorNode.endPoint.x) - Double(vectorNode.startPoint.x)
-        let dy = Double(vectorNode.endPoint.y) - Double(vectorNode.startPoint.y)
-        
-        RealmManager.shared.update { realm in
-            vectorModel.startX = Double(vectorNode.startPoint.x)
-            vectorModel.startY = Double(vectorNode.startPoint.y)
-            vectorModel.endX = Double(vectorNode.endPoint.x)
-            vectorModel.endY = Double(vectorNode.endPoint.y)
-            vectorModel.length = sqrt(dx * dx + dy * dy)
-            vectorModel.angle = atan2(dy, dx)
-            realm.add(vectorModel, update: .modified)
-        }
-        
+        vectorManager.updateVectorInRealm(vectorNode)
         dragDidEnd?()
     }
     

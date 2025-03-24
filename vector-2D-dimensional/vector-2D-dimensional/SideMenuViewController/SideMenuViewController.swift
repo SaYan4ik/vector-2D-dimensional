@@ -14,7 +14,7 @@ protocol SideMenuViewControllerDelegate: AnyObject {
     func didDeleteCell(_ row: Int, id: UUID)
 }
 
-class SideMenuViewController: UIViewController {
+final class SideMenuViewController: UIViewController {
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false

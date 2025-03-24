@@ -8,7 +8,7 @@
 import SpriteKit
 
 
-class VectorNode: SKNode {
+final class VectorNode: SKNode {
     var id: UUID
     var startPointNode: SKShapeNode?
     var endPointNode: SKShapeNode?

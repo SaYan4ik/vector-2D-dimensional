@@ -8,7 +8,7 @@ import Foundation
 import Combine
 
 
-class AddVectorViewModel {
+final class AddVectorViewModel {
     @Published var startX: Double = 0
     @Published var startY: Double = 0
     @Published var endX: Double = 0

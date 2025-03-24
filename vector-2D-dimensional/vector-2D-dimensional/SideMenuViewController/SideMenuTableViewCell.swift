@@ -8,7 +8,7 @@
 import UIKit
 
 
-class SideMenuTableViewCell: UITableViewCell {
+final class SideMenuTableViewCell: UITableViewCell {
     lazy var vectorCordsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false

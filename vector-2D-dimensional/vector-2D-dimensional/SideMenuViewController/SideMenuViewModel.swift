@@ -7,7 +7,7 @@
 
 import Foundation
 
-class SideMenuViewModel {
+final class SideMenuViewModel {
     @Published private(set) var vectors: [VectorModel] = []
     
     init() {
