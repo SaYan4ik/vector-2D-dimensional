@@ -50,9 +50,7 @@ class SideMenuViewController: UIViewController {
     }
     
     private func bindViewModel() {
-        viewModel.$vectors.sink { [weak self] vectors in
-            print("Side menu", vectors)
-            
+        viewModel.$vectors.sink { [weak self] vectors in            
             self?.dataSource = vectors
             self?.tableView.reloadData()
         }.store(in: &cancellables)
@@ -72,11 +70,6 @@ class SideMenuViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
-    
-//    func setViewModelData(_ vectors: [VectorModel]) {
-//        viewModel.setData(vectors)
-//    }
-    
     func updateVectors() {
         viewModel.fetchVectors()
     }

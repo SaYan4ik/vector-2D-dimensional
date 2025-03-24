@@ -55,7 +55,7 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     private func bindViewModel() {
         viewModel.$vectors.sink { [weak self] vectors in
-            print(vectors)
+//            print(vectors)
             self?.scene.updateVectors(vectors)
         }.store(in: &cancellables)
         

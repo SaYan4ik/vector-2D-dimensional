@@ -30,7 +30,7 @@ class VectorNode: SKNode {
         return endPoint - startPoint
     }
     
-    private var color: UIColor
+    private(set) var color: UIColor
 
     init(id: UUID, startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
         self.id = id
@@ -104,7 +104,7 @@ class VectorNode: SKNode {
         
     }
     
-    private func zRotation() -> CGFloat {
+    func zRotation() -> CGFloat {
         let v = endPoint - startPoint
         return atan2(v.y, v.x)
     }

@@ -15,6 +15,7 @@ class CanvasScene: SKScene {
     private var selectedNode: SKNode?
     private var initialTouchPoint: CGPoint = .zero
     
+    private var rightAngleIndicator: SKShapeNode?
     private let cameraNode = SKCameraNode()
     private var lastTouchPosition: CGPoint?
     var dragDidEnd: (() -> Void)?
@@ -134,6 +135,9 @@ class CanvasScene: SKScene {
             initialTouchPoint = location
             updateVectorInRealm(vectorNode)
             
+            rightAngleIndicator?.removeFromParent()
+            rightAngleIndicator = nil
+            
         } else if let pointNode = selectedNode as? SKShapeNode,
                   let vectorNode = pointNode.parent as? VectorNode {
             var newLocation = location
@@ -181,7 +185,43 @@ class CanvasScene: SKScene {
                     let b = vectorNode.startPoint - normalVector * vectorNorm
                     vectorNode.endPoint = ((a - newLocation).norm() < (b - newLocation).norm()) ? a: b
                     updateVectorInRealm(vectorNode)
+                    
+                   
+                    drawRightAngleIndicator(at: vectorNode, connectedNodes: connectedNodes)
+                } else {
+                    rightAngleIndicator?.removeFromParent()
+                    rightAngleIndicator = nil
                 }
+            }
+        }
+    }
+    
+    private func drawRightAngleIndicator(at selectedNode: VectorNode, connectedNodes: [VectorNode]) {
+        rightAngleIndicator?.removeFromParent()
+        rightAngleIndicator = nil
+        
+        let squareSize: CGFloat = 10.0
+        let normNodes = connectedNodes.filter { $0.id != selectedNode.id }.map { $0.v.normalized()}
+        let selNode = selectedNode.v.normalized()
+        
+        for normNode in normNodes {
+            let dotProduct = normNode.dot(selNode)
+            if abs(dotProduct) < 0.0001 {
+                let pos = selectedNode.startPoint + normNode * 5 + selNode * 5
+                
+                let square = SKShapeNode(rectOf: CGSize(width: squareSize, height: squareSize))
+                square.position = pos
+                square.zRotation = selectedNode.zRotation()
+                square.fillColor = .clear
+                square.strokeColor = selectedNode.color
+                square.lineWidth = 2.0
+                
+                if rightAngleIndicator == nil {
+                    rightAngleIndicator = SKShapeNode()
+                    addChild(rightAngleIndicator!)
+                }
+                rightAngleIndicator?.addChild(square)
+                
             }
         }
     }
