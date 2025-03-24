@@ -18,7 +18,7 @@ class CanvasScene: SKScene {
     private let cameraNode = SKCameraNode()
     private var lastTouchPosition: CGPoint?
     var dragDidEnd: (() -> Void)?
-        
+    
     override init(size: CGSize = .zero) {
         super.init(size: size)
     }
@@ -41,7 +41,7 @@ class CanvasScene: SKScene {
     
     @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: gesture.view)
-
+        
         if gesture.state == .changed {
             let newPosition = CGPoint(
                 x: cameraNode.position.x - translation.x,
@@ -57,7 +57,7 @@ class CanvasScene: SKScene {
         self.vectors = vectors
         removeAllChildren()
         
-        for vector in vectors {            
+        for vector in vectors {
             drawVectorNode(vector)
         }
     }
@@ -93,32 +93,31 @@ class CanvasScene: SKScene {
                 longPressChanged(location: locationInScene)
             case .ended, .cancelled:
                 longPressEnded()
-                dragDidEnd?()
+                selectedNode = nil
             default:
                 break
         }
     }
     
     private func longPressBegin(location: CGPoint) {
-        selectedNode = nodes(at: location).first
+        let t = 30.0
+        var ts = vectorsNode.map { (location - $0.startPoint).dot($0.v) / $0.v.norm() / $0.v.norm() }
         
-        guard let shapeNode = selectedNode as? SKShapeNode,
-              let vectorNode = shapeNode.parent as? VectorNode else {
-            
-            print("Node not selected or not part of a VectorNode")
-            longPressEnded()
-            return
-        }
+        ts = ts.indices.map { ts[$0] < t / vectorsNode[$0].v.norm() ? 0: ts[$0] }
+        ts = ts.indices.map { ts[$0] > 1 - t / vectorsNode[$0].v.norm() ? 1: ts[$0] }
         
-        if shapeNode.name == "Vector line" {
-            self.selectedNode = vectorNode
-            dragIsStart = true
-            initialTouchPoint = location
-        } else if shapeNode == vectorNode.startPointNode || shapeNode == vectorNode.endPointNode {
-            self.selectedNode = shapeNode
-            longPressEnded()
-        } else {
-            longPressEnded()
+        let distances = vectorsNode.indices.map { (location - (vectorsNode[$0].startPoint + vectorsNode[$0].v * ts[$0])).norm() }
+        let argmin = distances.indices.min { distances[$0] < distances[$1] }!
+        if distances[argmin] < 50 {
+            if ts[argmin] == 0 {
+                selectedNode = vectorsNode[argmin].startPointNode
+            } else if ts[argmin] == 1 {
+                selectedNode = vectorsNode[argmin].endPointNode
+            } else {
+                selectedNode = vectorsNode[argmin]
+                dragIsStart = true
+                initialTouchPoint = location
+            }
         }
     }
     
@@ -129,10 +128,7 @@ class CanvasScene: SKScene {
         }
         
         if dragIsStart, let vectorNode = selectedNode as? VectorNode {
-            let translation = CGPoint(
-                x: location.x - initialTouchPoint.x,
-                y: location.y - initialTouchPoint.y
-            )
+            let translation = location - initialTouchPoint
             
             vectorNode.move(by: translation)
             initialTouchPoint = location
@@ -142,13 +138,51 @@ class CanvasScene: SKScene {
                   let vectorNode = pointNode.parent as? VectorNode {
             var newLocation = location
             
-            if pointNode == vectorNode.startPointNode {
-                vectorNode.updateNodePos(point: &newLocation, isStartPoint: true, nodes: vectorsNode)
-            } else if pointNode == vectorNode.endPointNode {
-                vectorNode.updateNodePos(point: &newLocation, isStartPoint: false, nodes: vectorsNode)
+            let otherPoint = pointNode == vectorNode.startPointNode ? vectorNode.endPoint : vectorNode.startPoint
+            newLocation.x = abs(location.x - otherPoint.x) < 10.0 ? otherPoint.x : location.x
+            newLocation.y = abs(location.y - otherPoint.y) < 10.0 ? otherPoint.y : location.y
+            
+            
+            let otherNodes = vectorsNode.filter { $0.id != vectorNode.id }
+            if !otherNodes.isEmpty {
+                var snapTargets = otherNodes.map { $0.endPoint }
+                snapTargets.append(contentsOf: otherNodes.map { $0.startPoint })
+                let distancesToSnapTargets = snapTargets.map { ($0 - newLocation).norm() }
+                let closestSnapTargetIndex = distancesToSnapTargets.indices.min(by: {distancesToSnapTargets[$0] < distancesToSnapTargets[$1]})!
+                
+                if Double(distancesToSnapTargets[closestSnapTargetIndex]) < 40.0 {
+                    newLocation = snapTargets[closestSnapTargetIndex]
+                }
             }
             
+            
+            if pointNode == vectorNode.startPointNode {
+                vectorNode.startPoint = newLocation
+            } else if pointNode == vectorNode.endPointNode {
+                vectorNode.endPoint = newLocation
+            }
             updateVectorInRealm(vectorNode)
+            
+            let connectedNodes = otherNodes.filter { vectorNode.startPoint == $0.startPoint }
+            
+            if !connectedNodes.isEmpty {
+                let vector = vectorNode.endPoint - vectorNode.startPoint
+                let vectorNorm = vector.norm()
+                let unitVector = vector / vectorNorm
+                
+                let connectedVectorsUnits = connectedNodes.map { ($0.endPoint - $0.startPoint).normalized() }
+                let scores = connectedVectorsUnits.map { abs(Double($0.dot(unitVector))) }
+                let smallestScoreIndex = scores.indices.min(by: {scores[$0] < scores[$1]})!
+                if scores[smallestScoreIndex] < 0.05 {
+                    
+                    let otherVector = connectedVectorsUnits[smallestScoreIndex]
+                    let normalVector = CGPoint(x: -otherVector.y, y: otherVector.x)
+                    let a = vectorNode.startPoint + normalVector * vectorNorm
+                    let b = vectorNode.startPoint - normalVector * vectorNorm
+                    vectorNode.endPoint = ((a - newLocation).norm() < (b - newLocation).norm()) ? a: b
+                    updateVectorInRealm(vectorNode)
+                }
+            }
         }
     }
     
@@ -169,6 +203,8 @@ class CanvasScene: SKScene {
             vectorModel.angle = atan2(dy, dx)
             realm.add(vectorModel, update: .modified)
         }
+        
+        dragDidEnd?()
     }
     
     private func longPressEnded() {

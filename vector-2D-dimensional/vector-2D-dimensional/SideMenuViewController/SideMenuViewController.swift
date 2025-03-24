@@ -73,8 +73,12 @@ class SideMenuViewController: UIViewController {
         ])
     }
     
-    func setViewModelData(_ vectors: [VectorModel]) {
-        viewModel.setData(vectors)
+//    func setViewModelData(_ vectors: [VectorModel]) {
+//        viewModel.setData(vectors)
+//    }
+    
+    func updateVectors() {
+        viewModel.fetchVectors()
     }
 }
 

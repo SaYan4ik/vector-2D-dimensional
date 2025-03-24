@@ -26,8 +26,11 @@ class VectorNode: SKNode {
         }
     }
     
+    var v: CGPoint {
+        return endPoint - startPoint
+    }
+    
     private var color: UIColor
-    private var snapTreshold: CGFloat = 20.0
 
     init(id: UUID, startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
         self.id = id
@@ -63,7 +66,8 @@ class VectorNode: SKNode {
     
     private func createVectorPoints() {
         startPointNode = createCircle(position: startPoint, radius: 5, color: color)
-        endPointNode = createArrowNode(position: endPoint, angle: angleBetweenPoints(startPoint, endPoint))
+        endPointNode = createArrowNode(position: endPoint, angle: zRotation())
+        
         
         guard let startPointNode,
               let endPointNode
@@ -78,7 +82,6 @@ class VectorNode: SKNode {
         circle.fillColor = color
         circle.strokeColor = .black
         circle.position = position
-        
         return circle
     }
     
@@ -86,34 +89,32 @@ class VectorNode: SKNode {
         let path = CGMutablePath()
         path.move(to: startPoint)
         path.addLine(to: endPoint)
-        lineNode?.path = path
-        startPointNode?.position = startPoint
         
-        endPointNode?.zRotation = angleBetweenPoints(startPoint, endPoint)
+        lineNode?.path = path.copy()
+        startPointNode?.position = startPoint
+        endPointNode?.zRotation = zRotation()
         endPointNode?.position = endPoint
+        
     }
+    
     
     func move(by translation: CGPoint) {
         startPoint = CGPoint(x: startPoint.x + translation.x, y: startPoint.y + translation.y)
         endPoint = CGPoint(x: endPoint.x + translation.x, y: endPoint.y + translation.y)
-    }
-    
-    private func angleBetweenPoints(_ start: CGPoint, _ end: CGPoint) -> CGFloat {
-        let dX = end.x - start.x
-        let dY = end.y - start.y
         
-        return atan2(dY, dX)
     }
     
-    private func createArrowNode(position: CGPoint, angle: CGFloat) -> SKShapeNode {
-        let arrowLength: CGFloat = 15
-        let arrowWidth: CGFloat = 10
+    private func zRotation() -> CGFloat {
+        let v = endPoint - startPoint
+        return atan2(v.y, v.x)
+    }
+    
+    private func createArrowNode(position: CGPoint, angle: CGFloat, arrowLength: CGFloat = 15, arrowWidth: CGFloat = 10) -> SKShapeNode {
         
         let path = CGMutablePath()
-
-        path.move(to: CGPoint(x: 0, y: arrowWidth / 2))
-        path.addLine(to: CGPoint(x: arrowLength, y: 0))
-        path.addLine(to: CGPoint(x: 0, y: -arrowWidth / 2))
+        path.move(to: CGPoint(x: -arrowLength, y: arrowWidth / 2))
+        path.addLine(to: CGPoint(x: 0, y: 0))
+        path.addLine(to: CGPoint(x: -arrowLength, y: -arrowWidth / 2))
         path.closeSubpath()
         
         let arrowNode = SKShapeNode(path: path)
@@ -149,52 +150,5 @@ class VectorNode: SKNode {
         lineNode?.run(sequence)
         startPointNode?.run(sequence)
         endPointNode?.run(sequence)
-    }
-    
-    func updateNodePos(point: inout CGPoint, isStartPoint: Bool, nodes: [VectorNode]) {
-        let refPoint = isStartPoint ? endPoint : startPoint
-        
-        point = snapNodeByVerticalOrHorizontal(point: point, startPoint: refPoint)
-        point = snapToOtherNodes(point: point, nodes: nodes)
-        
-        if isStartPoint {
-            startPoint = point
-        } else {
-            endPoint = point
-        }
-    }
-    
-    private func snapNodeByVerticalOrHorizontal(point: CGPoint, startPoint: CGPoint) -> CGPoint {
-        var snappedPoint = point
-        
-        if abs(point.y - startPoint.y) < snapTreshold {
-            snappedPoint.y = startPoint.y
-        }
-        
-        if abs(point.x - startPoint.x) < snapTreshold {
-            snappedPoint.x = startPoint.x
-        }
-        
-        return snappedPoint
-    }
-    
-    private func snapToOtherNodes(point: CGPoint, nodes: [VectorNode]) -> CGPoint {
-        var snappedPoint = point
-        
-        for vector in nodes {
-            if vector.id != self.id {
-                if abs(point.x - vector.startPoint.x) < snapTreshold && abs(point.y - vector.startPoint.y) < snapTreshold {
-                    snappedPoint = vector.startPoint
-                    break
-                }
-                
-                if abs(point.x - vector.endPoint.x) < snapTreshold && abs(point.y - vector.endPoint.y) < snapTreshold {
-                    snappedPoint = vector.endPoint
-                    break
-                }
-            }
-        }
-        
-        return snappedPoint
     }
 }

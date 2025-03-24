@@ -56,12 +56,11 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     private func bindViewModel() {
         viewModel.$vectors.sink { [weak self] vectors in
             print(vectors)
-            self?.sideMenuViewController.setViewModelData(vectors)
             self?.scene.updateVectors(vectors)
         }.store(in: &cancellables)
         
         scene.dragDidEnd = {
-            self.viewModel.fetchVectors()
+            self.sideMenuViewController.updateVectors()
         }
     }
     
@@ -103,7 +102,6 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
 extension CanvasViewController {
     private func configureSideMenu() {
         let viewModel = SideMenuViewModel()
-        viewModel.setData(viewModel.vectors)
         
         sideMenuViewController = SideMenuViewController(viewModel: viewModel)
         sideMenuViewController.delegate = self
