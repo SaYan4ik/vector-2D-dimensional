@@ -8,7 +8,12 @@
 import SpriteKit
 
 
-final class VectorMovementManager {
+protocol VectorMovementable {
+    func handleLongPress(gesture: UILongPressGestureRecognizer, in view: SKView)
+    var dragDidEnd: (() -> Void)? { get set }
+}
+
+final class VectorMovementManager: VectorMovementable{
     private var vectorManager: VectorManagable?
     private weak var scene: SKScene?
     
@@ -71,7 +76,7 @@ final class VectorMovementManager {
     }
     
     private func longPressChanged(location: CGPoint) {
-        guard let selectedNode = selectedNode else { return }
+        guard let selectedNode else { return }
         
         if dragIsStart, let vectorNode = selectedNode as? VectorNode {
             let translation = location - initialTouchPoint
@@ -79,10 +84,13 @@ final class VectorMovementManager {
             initialTouchPoint = location
             updateVectorInRealm(vectorNode)
             clearRightAngleIndicator()
+            vectorNode.isSelected = true
+
             
         } else if let pointNode = selectedNode as? SKShapeNode,
                   let vectorNode = pointNode.parent as? VectorNode {
             var newLocation = location
+            vectorNode.isSelected = true
             
             let otherPoint = pointNode == vectorNode.startPointNode ? vectorNode.endPoint : vectorNode.startPoint
             newLocation.x = abs(location.x - otherPoint.x) < 10.0 ? otherPoint.x : location.x
@@ -113,6 +121,8 @@ final class VectorMovementManager {
     private func longPressEnded() {
         dragIsStart = false
         initialTouchPoint = .zero
+        (selectedNode as? VectorNode)?.isSelected = false
+        (selectedNode?.parent as? VectorNode)?.isSelected = false
         dragDidEnd?()
     }
     

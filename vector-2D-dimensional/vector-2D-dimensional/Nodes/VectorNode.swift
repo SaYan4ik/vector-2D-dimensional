@@ -30,8 +30,14 @@ final class VectorNode: SKNode {
         return endPoint - startPoint
     }
     
+    var isSelected: Bool = false {
+        didSet {
+            updateSelectionState()
+        }
+    }
+    
     private(set) var color: UIColor
-
+    
     init(id: UUID, startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
         self.id = id
         self.startPoint = startPoint
@@ -127,18 +133,18 @@ final class VectorNode: SKNode {
         let duration: TimeInterval = 2.0
         
         let increaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
-                let progress = elapsedTime / CGFloat(duration)
-                self.lineNode?.lineWidth = 1.0 + 3.0 * progress
-                self.startPointNode?.lineWidth = 1.0 + 3.0 * progress
-                self.endPointNode?.lineWidth = 1.0 + 3.0 * progress
+            let progress = elapsedTime / CGFloat(duration)
+            self.lineNode?.lineWidth = 2.0 + 3.0 * progress
+            self.startPointNode?.lineWidth = 2.0 + 3.0 * progress
+            self.endPointNode?.lineWidth = 2.0 + 3.0 * progress
         }
         
         let decreaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
-                let progress = elapsedTime / CGFloat(duration)
-                
-                self.lineNode?.lineWidth = 4.0 - 3.0 * progress
-                self.startPointNode?.lineWidth = 4.0 - 3.0 * progress
-                self.endPointNode?.lineWidth = 4.0 - 3.0 * progress
+            let progress = elapsedTime / CGFloat(duration)
+            
+            self.lineNode?.lineWidth = 5.0 - 3.0 * progress
+            self.startPointNode?.lineWidth = 5.0 - 3.0 * progress
+            self.endPointNode?.lineWidth = 5.0 - 3.0 * progress
         }
         
         let sequence = SKAction.sequence([increaseWidth, decreaseWidth])
@@ -146,5 +152,35 @@ final class VectorNode: SKNode {
         lineNode?.run(sequence)
         startPointNode?.run(sequence)
         endPointNode?.run(sequence)
+    }
+    
+    private func updateSelectionState() {
+        if isSelected {
+            let highlightColor = color.withAlphaComponent(0.8)
+            lineNode?.strokeColor = highlightColor
+            startPointNode?.fillColor = highlightColor
+            endPointNode?.fillColor = highlightColor
+            
+            let scaleAction = SKAction.sequence([
+                SKAction.scale(to: 1.2, duration: 0.2),
+                SKAction.scale(to: 1.0, duration: 0.2)
+            ])
+            
+            let repeatForever = SKAction.repeatForever(scaleAction)
+            
+            startPointNode?.run(repeatForever)
+            endPointNode?.run(repeatForever)
+        } else {
+            lineNode?.strokeColor = color
+            startPointNode?.fillColor = color
+            endPointNode?.fillColor = color
+            
+            startPointNode?.setScale(1.0)
+            endPointNode?.setScale(1.0)
+            
+            lineNode?.removeAllActions()
+            startPointNode?.removeAllActions()
+            endPointNode?.removeAllActions()
+        }
     }
 }

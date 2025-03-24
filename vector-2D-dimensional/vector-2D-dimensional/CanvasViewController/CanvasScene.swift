@@ -16,8 +16,9 @@ final class CanvasScene: SKScene {
         VectorManager(scene: self)
     }()
 
-    private lazy var movementHandler = VectorMovementManager(vectorManager: vectorManager, scene: self)
-
+    private lazy var movementHandler: VectorMovementable = {
+        VectorMovementManager(vectorManager: vectorManager, scene: self)
+    }()
     
     override init(size: CGSize = .zero) {
         super.init(size: size)
@@ -30,6 +31,7 @@ final class CanvasScene: SKScene {
     override func didMove(to view: SKView) {
         DispatchQueue.main.async {
             self.setupCamera(for: view)
+            self.drawGridCells()
         }
         
         movementHandler.dragDidEnd = { [weak self] in
@@ -106,7 +108,7 @@ final class CanvasScene: SKScene {
     }
     
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
-        guard let view = view else { return }
+        guard let view else { return }
         movementHandler.handleLongPress(gesture: gesture, in: view)
     }
 }
