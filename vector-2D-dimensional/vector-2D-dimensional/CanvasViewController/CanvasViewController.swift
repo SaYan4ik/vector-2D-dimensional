@@ -86,13 +86,14 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
         let addVectorVC = AddVectorViewController(viewModel: addVectorViewModel)
         
         addVectorVC.vectorDidAdd = { [weak self] vector in
-            self?.viewModel.addVector(startX: vector.startX,
-                                startY: vector.startX,
-                                endX: vector.endX,
-                                endY: vector.endY,
-                                color: vector.color,
-                                length: vector.length,
-                                angle: vector.angle
+            self?.viewModel.addVector(
+                startX: vector.startX,
+                startY: vector.startX,
+                endX: vector.endX,
+                endY: vector.endY,
+                color: vector.color,
+                length: vector.length,
+                angle: vector.angle
             )
         }
         navigationController?.pushViewController(addVectorVC, animated: true)

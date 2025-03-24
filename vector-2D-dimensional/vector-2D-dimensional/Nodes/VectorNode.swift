@@ -99,9 +99,10 @@ class VectorNode: SKNode {
     }
     
     private func angleBetweenPoints(_ start: CGPoint, _ end: CGPoint) -> CGFloat {
-        let deltaX = end.x - start.x
-        let deltaY = end.y - start.y
-        return atan2(deltaY, deltaX)
+        let dX = end.x - start.x
+        let dY = end.y - start.y
+        
+        return atan2(dY, dX)
     }
     
     private func createArrowNode(position: CGPoint, angle: CGFloat) -> SKShapeNode {
@@ -129,6 +130,7 @@ class VectorNode: SKNode {
         
         let increaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
                 let progress = elapsedTime / CGFloat(duration)
+            
                 self.lineNode?.lineWidth = 1.0 + 3.0 * progress
                 self.startPointNode?.lineWidth = 1.0 + 3.0 * progress
                 self.endPointNode?.lineWidth = 1.0 + 3.0 * progress
@@ -151,6 +153,7 @@ class VectorNode: SKNode {
     
     func updateNodePos(point: inout CGPoint, isStartPoint: Bool, nodes: [VectorNode]) {
         let refPoint = isStartPoint ? endPoint : startPoint
+        
         point = snapNodeByVerticalOrHorizontal(point: point, startPoint: refPoint)
         point = snapToOtherNodes(point: point, nodes: nodes)
         
