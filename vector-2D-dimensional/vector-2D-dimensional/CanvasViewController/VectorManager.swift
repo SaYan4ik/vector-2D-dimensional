@@ -8,7 +8,13 @@
 import Foundation
 import SpriteKit
 
-class VectorManager {
+protocol VectorManagable {
+    func updateVectors(_ vectors: [VectorModel])
+    func getVectorNodes() -> [VectorNode]
+    func updateVectorInRealm(_ vectorNode: VectorNode)
+}
+
+class VectorManager: VectorManagable {
     private(set) var vectors: [VectorModel] = []
     private(set) var vectorNodes: [VectorNode] = []
     private weak var scene: SKScene?
@@ -21,6 +27,14 @@ class VectorManager {
         self.vectors = vectors
         clearScene()
         drawAllVectors()
+    }
+    
+    func getVectorNodes() -> [VectorNode] {
+        vectorNodes
+    }
+    
+    func getVectorNode(by id: UUID) -> VectorNode? {
+        return vectorNodes.first { $0.id == id }
     }
     
     private func clearScene() {
@@ -45,11 +59,7 @@ class VectorManager {
         vectorNodes.append(vectorNode)
         scene?.addChild(vectorNode)
     }
-    
-    func getVectorNode(by id: UUID) -> VectorNode? {
-        return vectorNodes.first { $0.id == id }
-    }
-    
+
     func updateVectorInRealm(_ vectorNode: VectorNode) {
         guard let vectorModel = vectors.first(where: { $0.id == vectorNode.id }) else {
             return
