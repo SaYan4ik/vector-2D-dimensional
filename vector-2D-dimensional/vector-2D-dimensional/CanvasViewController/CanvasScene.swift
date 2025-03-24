@@ -14,8 +14,6 @@ class CanvasScene: SKScene {
     private var dragIsStart: Bool = false
     private var selectedNode: SKNode?
     private var initialTouchPoint: CGPoint = .zero
-    private let height = 4000.0
-    private let width = 4000.0
     
     private var rightAngleIndicator: SKShapeNode?
     private let cameraNode = SKCameraNode()
@@ -31,12 +29,14 @@ class CanvasScene: SKScene {
     
     override func didMove(to view: SKView) {
         DispatchQueue.main.async {
-//            self.drawGridCells()
             self.setupCamera(for: view)
         }
     }
     
     private func drawGridCells() {
+        let height = 4000.0
+        let width = 4000.0
+        
         let cellSize: CGFloat = 30.0
         let rows = Int( height / cellSize)
         let cols = Int( width / cellSize)
@@ -123,6 +123,10 @@ class CanvasScene: SKScene {
         let locationInView = gesture.location(in: view)
         let locationInScene = convertPoint(fromView: locationInView)
         
+        handleLongPressState(gesture, locationInScene: locationInScene)
+    }
+    
+    private func handleLongPressState(_ gesture: UILongPressGestureRecognizer, locationInScene: CGPoint) {
         switch gesture.state {
             case .began:
                 longPressBegin(location: locationInScene)
@@ -131,22 +135,24 @@ class CanvasScene: SKScene {
             case .ended, .cancelled:
                 longPressEnded()
                 selectedNode = nil
-                dragDidEnd?()
             default:
                 break
         }
     }
     
     private func longPressBegin(location: CGPoint) {
-        let t = 30.0
+        let cutPressDistance = 30.0
+        let snapTreshold = 50.0
+        
         var ts = vectorsNode.map { (location - $0.startPoint).dot($0.v) / $0.v.norm() / $0.v.norm() }
         
-        ts = ts.indices.map { ts[$0] < t / vectorsNode[$0].v.norm() ? 0: ts[$0] }
-        ts = ts.indices.map { ts[$0] > 1 - t / vectorsNode[$0].v.norm() ? 1: ts[$0] }
+        ts = ts.indices.map { ts[$0] < cutPressDistance / vectorsNode[$0].v.norm() ? 0: ts[$0] }
+        ts = ts.indices.map { ts[$0] > 1 - cutPressDistance / vectorsNode[$0].v.norm() ? 1: ts[$0] }
         
         let distances = vectorsNode.indices.map { (location - (vectorsNode[$0].startPoint + vectorsNode[$0].v * ts[$0])).norm() }
         let argmin = distances.indices.min { distances[$0] < distances[$1] }!
-        if distances[argmin] < 50 {
+        
+        if distances[argmin] < snapTreshold {
             if ts[argmin] == 0 {
                 selectedNode = vectorsNode[argmin].startPointNode
             } else if ts[argmin] == 1 {
@@ -160,7 +166,7 @@ class CanvasScene: SKScene {
     }
     
     private func longPressChanged(location: CGPoint) {
-        guard let selectedNode = selectedNode else {
+        guard let selectedNode else {
             print("Node not selected")
             return
         }
@@ -220,10 +226,9 @@ class CanvasScene: SKScene {
                     let normalVector = CGPoint(x: -otherVector.y, y: otherVector.x)
                     let a = vectorNode.startPoint + normalVector * vectorNorm
                     let b = vectorNode.startPoint - normalVector * vectorNorm
-                    vectorNode.endPoint = ((a - newLocation).norm() < (b - newLocation).norm()) ? a: b
+                    vectorNode.endPoint = ((a - newLocation).norm() < (b - newLocation).norm()) ? a : b
                     updateVectorInRealm(vectorNode)
                     
-                   
                     drawRightAngleIndicator(at: vectorNode, connectedNodes: connectedNodes)
                 } else {
                     rightAngleIndicator?.removeFromParent()
@@ -279,6 +284,8 @@ class CanvasScene: SKScene {
             vectorModel.angle = atan2(dy, dx)
             realm.add(vectorModel, update: .modified)
         }
+        
+        dragDidEnd?()
     }
     
     private func longPressEnded() {
