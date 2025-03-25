@@ -7,12 +7,14 @@
 
 import Foundation
 
-class SideMenuViewModel {
+final class SideMenuViewModel {
     @Published private(set) var vectors: [VectorModel] = []
     
-    init() { }
+    init() {
+        fetchVectors()
+    }
     
-    func setData(_ vectors: [VectorModel]) {
-        self.vectors = vectors
+    func fetchVectors() {
+        self.vectors = RealmManager.shared.read(ofType: VectorModel.self)
     }
 }

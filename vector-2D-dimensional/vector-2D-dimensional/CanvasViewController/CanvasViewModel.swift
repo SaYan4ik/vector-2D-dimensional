@@ -9,7 +9,7 @@ import UIKit
 import Combine
 
 
-class CanvasViewModel {
+final class CanvasViewModel {
     @Published private(set) var vectors: [VectorModel] = []
     
     init() {

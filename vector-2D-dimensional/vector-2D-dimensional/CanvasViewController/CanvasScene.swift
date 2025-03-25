@@ -8,17 +8,18 @@
 import SpriteKit
 import UIKit
 
-class CanvasScene: SKScene {
-    private var vectors: [VectorModel] = []
-    private var vectorsNode: [VectorNode] = []
-    private var dragIsStart: Bool = false
-    private var selectedNode: SKNode?
-    private var initialTouchPoint: CGPoint = .zero
-    
-    private let cameraNode = SKCameraNode()
-    private var lastTouchPosition: CGPoint?
+final class CanvasScene: SKScene {
     var dragDidEnd: (() -> Void)?
-        
+    let cameraNode = SKCameraNode()
+    
+    private lazy var vectorManager: VectorManagable = {
+        VectorManager(scene: self)
+    }()
+
+    private lazy var movementHandler: VectorMovementable = {
+        VectorMovementManager(vectorManager: vectorManager, scene: self)
+    }()
+    
     override init(size: CGSize = .zero) {
         super.init(size: size)
     }
@@ -28,10 +29,66 @@ class CanvasScene: SKScene {
     }
     
     override func didMove(to view: SKView) {
-        self.camera = cameraNode
-        addChild(cameraNode)
+        DispatchQueue.main.async {
+            self.setupCamera(for: view)
+            self.drawGridCells()
+        }
         
-        handlePanCanvas(on: view)
+        movementHandler.dragDidEnd = { [weak self] in
+            self?.dragDidEnd?()
+        }
+    }
+    
+    private func drawGridCells() {
+        let cellSize: CGFloat = 30.0
+        let gridExtent: CGFloat = 2000.0
+        let gridColor = SKColor(white: 0.8, alpha: 1.0)
+        let axisColor = SKColor(white: 0.5, alpha: 1.0)
+        
+        let verticalLines = Int(gridExtent / cellSize)
+        let horizontalLines = Int(gridExtent / cellSize)
+        
+        for i in -verticalLines...verticalLines {
+            let x = CGFloat(i) * cellSize
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: x, y: -gridExtent))
+            path.addLine(to: CGPoint(x: x, y: gridExtent))
+            
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .gray
+            line.lineWidth = 1.0
+            self.addChild(line)
+        }
+        
+        for i in -horizontalLines...horizontalLines {
+            let y = CGFloat(i) * cellSize
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: -gridExtent, y: y))
+            path.addLine(to: CGPoint(x: gridExtent, y: y))
+            
+            let line = SKShapeNode(path: path)
+            line.strokeColor = gridColor
+            line.lineWidth = 1.0
+            self.addChild(line)
+        }
+        
+        let axisPath = CGMutablePath()
+        axisPath.move(to: CGPoint(x: -gridExtent, y: 0))
+        axisPath.addLine(to: CGPoint(x: gridExtent, y: 0))
+        axisPath.move(to: CGPoint(x: 0, y: -gridExtent))
+        axisPath.addLine(to: CGPoint(x: 0, y: gridExtent))
+        
+        let axis = SKShapeNode(path: axisPath)
+        axis.strokeColor = axisColor
+        axis.lineWidth = 2.0
+        self.addChild(axis)
+    }
+
+    private func setupCamera(for view: SKView) {
+        self.camera = self.cameraNode
+        self.addChild(self.cameraNode)
+        
+        self.handlePanCanvas(on: view)
     }
     
     private func handlePanCanvas(on view: SKView) {
@@ -41,7 +98,7 @@ class CanvasScene: SKScene {
     
     @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: gesture.view)
-
+        
         if gesture.state == .changed {
             let newPosition = CGPoint(
                 x: cameraNode.position.x - translation.x,
@@ -51,29 +108,25 @@ class CanvasScene: SKScene {
             cameraNode.position = newPosition
             gesture.setTranslation(.zero, in: gesture.view)
         }
+        
     }
+    
+    func centerCamera(on node: SKNode, duration: TimeInterval = 0.5) {        
+        let cameraPosition = node.position
+        moveCamera(to: cameraPosition, duration: duration)
+    }
+    
+    private func moveCamera(to position: CGPoint, duration: TimeInterval = 0.5) {
+        let moveAction = SKAction.move(to: position, duration: duration)
+        moveAction.timingMode = .easeInEaseOut
+        cameraNode.run(moveAction)
+    }
+    
     
     func updateVectors(_ vectors: [VectorModel]) {
-        self.vectors = vectors
-        removeAllChildren()
-        
-        for vector in vectors {            
-            drawVectorNode(vector)
-        }
+        vectorManager.updateVectors(vectors)
     }
-    
-    private func drawVectorNode(_ vector: VectorModel) {
-        let vectorNode = VectorNode(
-            id: vector.id,
-            startPoint: CGPoint(x: vector.startX, y: vector.startY),
-            endPoint: CGPoint(x: vector.endX, y: vector.endY),
-            color: vector.color
-        )
-        
-        vectorsNode.append(vectorNode)
-        addChild(vectorNode)
-    }
-    
+
     func addGesture(){
         guard let view else { return }
         let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
@@ -82,97 +135,7 @@ class CanvasScene: SKScene {
     }
     
     @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
-        guard let view = view else { return }
-        let locationInView = gesture.location(in: view)
-        let locationInScene = convertPoint(fromView: locationInView)
-        
-        switch gesture.state {
-            case .began:
-                longPressBegin(location: locationInScene)
-            case .changed:
-                longPressChanged(location: locationInScene)
-            case .ended, .cancelled:
-                longPressEnded()
-                dragDidEnd?()
-            default:
-                break
-        }
-    }
-    
-    private func longPressBegin(location: CGPoint) {
-        selectedNode = nodes(at: location).first
-        
-        guard let shapeNode = selectedNode as? SKShapeNode,
-              let vectorNode = shapeNode.parent as? VectorNode else {
-            
-            print("Node not selected or not part of a VectorNode")
-            longPressEnded()
-            return
-        }
-        
-        if shapeNode.name == "Vector line" {
-            self.selectedNode = vectorNode
-            dragIsStart = true
-            initialTouchPoint = location
-        } else if shapeNode == vectorNode.startPointNode || shapeNode == vectorNode.endPointNode {
-            self.selectedNode = shapeNode
-            longPressEnded()
-        } else {
-            longPressEnded()
-        }
-    }
-    
-    private func longPressChanged(location: CGPoint) {
-        guard let selectedNode = selectedNode else {
-            print("Node not selected")
-            return
-        }
-        
-        if dragIsStart, let vectorNode = selectedNode as? VectorNode {
-            let translation = CGPoint(
-                x: location.x - initialTouchPoint.x,
-                y: location.y - initialTouchPoint.y
-            )
-            
-            vectorNode.move(by: translation)
-            initialTouchPoint = location
-            updateVectorInRealm(vectorNode)
-            
-        } else if let pointNode = selectedNode as? SKShapeNode,
-                  let vectorNode = pointNode.parent as? VectorNode {
-            var newLocation = location
-            
-            if pointNode == vectorNode.startPointNode {
-                vectorNode.updateNodePos(point: &newLocation, isStartPoint: true, nodes: vectorsNode)
-            } else if pointNode == vectorNode.endPointNode {
-                vectorNode.updateNodePos(point: &newLocation, isStartPoint: false, nodes: vectorsNode)
-            }
-            
-            updateVectorInRealm(vectorNode)
-        }
-    }
-    
-    private func updateVectorInRealm(_ vectorNode: VectorNode) {
-        guard let vectorModel = vectors.first(where: { $0.id == vectorNode.id }) else {
-            return
-        }
-        
-        let dx = Double(vectorNode.endPoint.x) - Double(vectorNode.startPoint.x)
-        let dy = Double(vectorNode.endPoint.y) - Double(vectorNode.startPoint.y)
-        
-        RealmManager.shared.update { realm in
-            vectorModel.startX = Double(vectorNode.startPoint.x)
-            vectorModel.startY = Double(vectorNode.startPoint.y)
-            vectorModel.endX = Double(vectorNode.endPoint.x)
-            vectorModel.endY = Double(vectorNode.endPoint.y)
-            vectorModel.length = sqrt(dx * dx + dy * dy)
-            vectorModel.angle = atan2(dy, dx)
-            realm.add(vectorModel, update: .modified)
-        }
-    }
-    
-    private func longPressEnded() {
-        dragIsStart = false
-        initialTouchPoint = .zero
+        guard let view else { return }
+        movementHandler.handleLongPress(gesture: gesture, in: view)
     }
 }

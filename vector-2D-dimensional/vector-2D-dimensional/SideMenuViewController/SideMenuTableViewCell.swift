@@ -8,8 +8,8 @@
 import UIKit
 
 
-class SideMenuTableViewCell: UITableViewCell {
-    lazy var vectorCordsLabel: UILabel = {
+final class SideMenuTableViewCell: UITableViewCell {
+    private lazy var vectorCordsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .black
@@ -20,7 +20,7 @@ class SideMenuTableViewCell: UITableViewCell {
         return label
     }()
     
-    lazy var vectorLengthLabel: UILabel = {
+    private lazy var vectorLengthLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .black
@@ -31,12 +31,21 @@ class SideMenuTableViewCell: UITableViewCell {
         return label
     }()
     
-    lazy var containerView: UIView = {
+    private lazy var containerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = 12
         view.backgroundColor = .clear
         return view
+    }()
+    
+    private lazy var hexLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = true
+        label.font = .systemFont(ofSize: 12)
+        return label
     }()
     
     private lazy var containerStack: UIStackView = {
@@ -49,7 +58,7 @@ class SideMenuTableViewCell: UITableViewCell {
         return stack
     }()
     
-    let gradientLayer = CAGradientLayer()
+    private let gradientLayer = CAGradientLayer()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -65,33 +74,10 @@ class SideMenuTableViewCell: UITableViewCell {
         super.layoutSublayers(of: self.layer)
         gradientLayer.frame = contentView.bounds
         
-        let colorSet = [Themes.primaryBackgroundSecondary,
-                        Themes.tintNavigationBar]
+        let colorSet = [Themes.primaryBackgroundSecondary, Themes.tintNavigationBar]
         let location = [0.2, 1.0]
         
         contentView.addGradient(with: gradientLayer, colorSet: colorSet, locations: location)
-    }
-    
-    private func layoutElements() {
-        layoutTitleLabel()
-        layoutContainerView()
-    }
-    
-    private func layoutTitleLabel() {
-        containerStack.addArrangedSubview(vectorLengthLabel)
-        containerStack.addArrangedSubview(vectorCordsLabel)
-    }
-    
-    private func layoutContainerView() {
-        self.contentView.addSubview(containerStack)
-        contentView.layer.cornerRadius = 8
-        
-        NSLayoutConstraint.activate([
-            containerStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 16),
-            containerStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
-            containerStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
-            containerStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -16)
-        ])
     }
     
     func set(vector: VectorModel) {
@@ -104,27 +90,41 @@ class SideMenuTableViewCell: UITableViewCell {
         let formedEndY = String(format: "%.2f", vector.endY)
         
         vectorCordsLabel.text = "(\(formedStartX), \(formedStartY))(\(formedEndX), \(formedEndY))"
+        
+        hexLabel.text = hexStringFromColor(color: vector.color)
+        hexLabel.textColor = vector.color
     }
     
-}
-
-extension UIView {
-    func addGradient(with layer: CAGradientLayer, gradientFrame: CGRect? = nil, colorSet: [UIColor],
-                     locations: [Double], startEndPoints: (CGPoint, CGPoint)? = nil) {
-        layer.frame = gradientFrame ?? self.bounds
-        layer.frame.origin = .zero
-
-        let layerColorSet = colorSet.map { $0.cgColor }
-        let layerLocations = locations.map { $0 as NSNumber }
-
-        layer.colors = layerColorSet
-        layer.locations = layerLocations
-
-        if let startEndPoints = startEndPoints {
-            layer.startPoint = startEndPoints.0
-            layer.endPoint = startEndPoints.1
-        }
-
-        self.layer.insertSublayer(layer, at: 0)
+    func hexStringFromColor(color: UIColor) -> String {
+        let components = color.cgColor.components
+        let r: CGFloat = components?[0] ?? 0.0
+        let g: CGFloat = components?[1] ?? 0.0
+        let b: CGFloat = components?[2] ?? 0.0
+        
+        let hexString = String.init(format: "#%02lX%02lX%02lX", lroundf(Float(r * 255)), lroundf(Float(g * 255)), lroundf(Float(b * 255)))
+        return hexString
+    }
+    
+    private func layoutElements() {
+        layoutTitleLabel()
+        layoutContainerView()
+    }
+    
+    private func layoutTitleLabel() {
+        containerStack.addArrangedSubview(vectorLengthLabel)
+        containerStack.addArrangedSubview(vectorCordsLabel)
+        containerStack.addArrangedSubview(hexLabel)
+    }
+    
+    private func layoutContainerView() {
+        self.contentView.addSubview(containerStack)
+        contentView.layer.cornerRadius = 8
+        
+        NSLayoutConstraint.activate([
+            containerStack.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 16),
+            containerStack.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
+            containerStack.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
+            containerStack.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -16)
+        ])
     }
 }

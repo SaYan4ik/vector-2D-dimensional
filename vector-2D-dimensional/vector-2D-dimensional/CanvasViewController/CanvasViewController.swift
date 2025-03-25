@@ -10,11 +10,10 @@ import Combine
 import SpriteKit
 
 
-class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
-    
+final class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     private var scene: CanvasScene = {
         let scene = CanvasScene()
-        scene.backgroundColor = .lightGray
+        scene.backgroundColor = .white
         return scene
     }()
     
@@ -55,13 +54,11 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
     
     private func bindViewModel() {
         viewModel.$vectors.sink { [weak self] vectors in
-            print(vectors)
-            self?.sideMenuViewController.setViewModelData(vectors)
             self?.scene.updateVectors(vectors)
         }.store(in: &cancellables)
         
         scene.dragDidEnd = {
-            self.viewModel.fetchVectors()
+            self.sideMenuViewController.updateVectors()
         }
     }
     
@@ -95,6 +92,8 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
                 length: vector.length,
                 angle: vector.angle
             )
+            
+            self?.sideMenuViewController.updateVectors()
         }
         navigationController?.pushViewController(addVectorVC, animated: true)
     }
@@ -103,7 +102,6 @@ class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
 extension CanvasViewController {
     private func configureSideMenu() {
         let viewModel = SideMenuViewModel()
-        viewModel.setData(viewModel.vectors)
         
         sideMenuViewController = SideMenuViewController(viewModel: viewModel)
         sideMenuViewController.delegate = self
@@ -112,7 +110,6 @@ extension CanvasViewController {
         sideMenuViewController.didMove(toParent: self)
         sideMenuViewController.view.translatesAutoresizingMaskIntoConstraints = false
         setupSideMenuConstrain()
-        
         
         let edgePanGestureRecognizer = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgeSwipe))
         edgePanGestureRecognizer.edges = .left
@@ -139,13 +136,10 @@ extension CanvasViewController {
         let hamburgerImage = UIImage(systemName: "line.horizontal.3")
         let arrowBackImage = UIImage(systemName: "arrowshape.backward")
         UIView.animate(withDuration: 3) {
-            
             sender.setImage(self.isSideMenuShown ? hamburgerImage : arrowBackImage, for: .normal)
         } completion: { isFinished in
             guard isFinished else { return }
         }
-
-
     }
     
     private func sideMenuState(expanded: Bool) {
@@ -173,7 +167,6 @@ extension CanvasViewController {
             
         }, completion: completion)
     }
-    
 }
 
 extension CanvasViewController: UIGestureRecognizerDelegate {
@@ -205,9 +198,13 @@ extension CanvasViewController {
         DispatchQueue.main.async {
             if let selectedNode = self.scene.children
                 .map({($0 as? VectorNode)})
-                .first(where: { $0?.id == id })
-            {
-                selectedNode?.animationNodeBorder()
+                .first(where: { $0?.id == id }) {
+                guard let selectedNode,
+                      let nodeForFocus = selectedNode.startPointNode
+                else { return }
+                
+                self.scene.centerCamera(on: nodeForFocus)
+                selectedNode.animationNodeBorder()
             }
         }
     }

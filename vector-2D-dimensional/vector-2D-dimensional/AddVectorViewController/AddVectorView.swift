@@ -9,7 +9,7 @@ import UIKit
 import Combine
 
 
-class AddVectorView: UIView {
+final class AddVectorView: UIView {
     lazy var mainContainerStack = stackViewBuilder(axis: .vertical,
                                                    distribution: .fill,
                                                    spacing: 8)
@@ -20,7 +20,7 @@ class AddVectorView: UIView {
     lazy var endVectorLabelCords = createLabel(text: "End cords X / Y",
                                                font: .boldSystemFont(ofSize: 17))
     
-    lazy var otherParamsLabel = createLabel(text: "Other Params",
+    lazy var otherParamsLabel = createLabel(text: "Length / Degree",
                                             font: .boldSystemFont(ofSize: 17))
     
     lazy var startContainerStack = stackViewBuilder(axis: .horizontal,
@@ -117,11 +117,3 @@ class AddVectorView: UIView {
     }
 }
 
-extension UITextField {
-  func textPublisher() -> AnyPublisher<String, Never> {
-      NotificationCenter.default
-          .publisher(for: UITextField.textDidChangeNotification, object: self)
-          .map { ($0.object as? UITextField)?.text  ?? "" }
-          .eraseToAnyPublisher()
-  }
-}

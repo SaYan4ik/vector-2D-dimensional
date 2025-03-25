@@ -8,12 +8,12 @@ import Foundation
 import Combine
 
 
-class AddVectorViewModel {
+final class AddVectorViewModel {
     @Published var startX: Double = 0
     @Published var startY: Double = 0
     @Published var endX: Double = 0
-    @Published var endY: Double = 1
-    @Published var length: Double = 1
+    @Published var endY: Double = 100
+    @Published var length: Double = 100
     @Published var angle: Double = 90
 
     func updateCoordinates(startX: Double, startY: Double, endX: Double, endY: Double) {

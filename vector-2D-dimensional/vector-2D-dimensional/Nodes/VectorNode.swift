@@ -8,7 +8,7 @@
 import SpriteKit
 
 
-class VectorNode: SKNode {
+final class VectorNode: SKNode {
     var id: UUID
     var startPointNode: SKShapeNode?
     var endPointNode: SKShapeNode?
@@ -26,9 +26,18 @@ class VectorNode: SKNode {
         }
     }
     
-    private var color: UIColor
-    private var snapTreshold: CGFloat = 20.0
-
+    var v: CGPoint {
+        return endPoint - startPoint
+    }
+    
+    var isSelected: Bool = false {
+        didSet {
+            updateSelectionState()
+        }
+    }
+    
+    private(set) var color: UIColor
+    
     init(id: UUID, startPoint: CGPoint, endPoint: CGPoint, color: UIColor) {
         self.id = id
         self.startPoint = startPoint
@@ -56,14 +65,15 @@ class VectorNode: SKNode {
         let shapeNode = SKShapeNode(path: path)
         shapeNode.strokeColor = color
         shapeNode.name = "Vector line"
-        shapeNode.lineWidth = 1
+        shapeNode.lineWidth = 3
         lineNode = shapeNode
         addChild(shapeNode)
     }
     
     private func createVectorPoints() {
         startPointNode = createCircle(position: startPoint, radius: 5, color: color)
-        endPointNode = createArrowNode(position: endPoint, angle: angleBetweenPoints(startPoint, endPoint))
+        endPointNode = createArrowNode(position: endPoint, angle: zRotation())
+        
         
         guard let startPointNode,
               let endPointNode
@@ -78,7 +88,6 @@ class VectorNode: SKNode {
         circle.fillColor = color
         circle.strokeColor = .black
         circle.position = position
-        
         return circle
     }
     
@@ -89,7 +98,7 @@ class VectorNode: SKNode {
         lineNode?.path = path
         startPointNode?.position = startPoint
         
-        endPointNode?.zRotation = angleBetweenPoints(startPoint, endPoint)
+        endPointNode?.zRotation = zRotation()
         endPointNode?.position = endPoint
     }
     
@@ -98,22 +107,17 @@ class VectorNode: SKNode {
         endPoint = CGPoint(x: endPoint.x + translation.x, y: endPoint.y + translation.y)
     }
     
-    private func angleBetweenPoints(_ start: CGPoint, _ end: CGPoint) -> CGFloat {
-        let dX = end.x - start.x
-        let dY = end.y - start.y
-        
-        return atan2(dY, dX)
+    func zRotation() -> CGFloat {
+        let v = endPoint - startPoint
+        return atan2(v.y, v.x)
     }
     
-    private func createArrowNode(position: CGPoint, angle: CGFloat) -> SKShapeNode {
-        let arrowLength: CGFloat = 15
-        let arrowWidth: CGFloat = 10
+    private func createArrowNode(position: CGPoint, angle: CGFloat, arrowLength: CGFloat = 15, arrowWidth: CGFloat = 10) -> SKShapeNode {
         
         let path = CGMutablePath()
-
-        path.move(to: CGPoint(x: 0, y: arrowWidth / 2))
-        path.addLine(to: CGPoint(x: arrowLength, y: 0))
-        path.addLine(to: CGPoint(x: 0, y: -arrowWidth / 2))
+        path.move(to: CGPoint(x: -arrowLength, y: arrowWidth / 2))
+        path.addLine(to: CGPoint(x: 0, y: 0))
+        path.addLine(to: CGPoint(x: -arrowLength, y: -arrowWidth / 2))
         path.closeSubpath()
         
         let arrowNode = SKShapeNode(path: path)
@@ -129,19 +133,18 @@ class VectorNode: SKNode {
         let duration: TimeInterval = 2.0
         
         let increaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
-                let progress = elapsedTime / CGFloat(duration)
-            
-                self.lineNode?.lineWidth = 1.0 + 3.0 * progress
-                self.startPointNode?.lineWidth = 1.0 + 3.0 * progress
-                self.endPointNode?.lineWidth = 1.0 + 3.0 * progress
+            let progress = elapsedTime / CGFloat(duration)
+            self.lineNode?.lineWidth = 3.0 + 3.0 * progress
+            self.startPointNode?.lineWidth = 3.0 + 1.0 * progress
+            self.endPointNode?.lineWidth = 3.0 + 1.0 * progress
         }
         
         let decreaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
-                let progress = elapsedTime / CGFloat(duration)
-                
-                self.lineNode?.lineWidth = 4.0 - 3.0 * progress
-                self.startPointNode?.lineWidth = 4.0 - 3.0 * progress
-                self.endPointNode?.lineWidth = 4.0 - 3.0 * progress
+            let progress = elapsedTime / CGFloat(duration)
+            
+            self.lineNode?.lineWidth = 6.0 - 3.0 * progress
+            self.startPointNode?.lineWidth = 4.0 - 3.0 * progress
+            self.endPointNode?.lineWidth = 4.0 - 3.0 * progress
         }
         
         let sequence = SKAction.sequence([increaseWidth, decreaseWidth])
@@ -151,50 +154,33 @@ class VectorNode: SKNode {
         endPointNode?.run(sequence)
     }
     
-    func updateNodePos(point: inout CGPoint, isStartPoint: Bool, nodes: [VectorNode]) {
-        let refPoint = isStartPoint ? endPoint : startPoint
-        
-        point = snapNodeByVerticalOrHorizontal(point: point, startPoint: refPoint)
-        point = snapToOtherNodes(point: point, nodes: nodes)
-        
-        if isStartPoint {
-            startPoint = point
+    private func updateSelectionState() {
+        if isSelected {
+            let highlightColor = color.withAlphaComponent(0.8)
+            lineNode?.strokeColor = highlightColor
+            startPointNode?.fillColor = highlightColor
+            endPointNode?.fillColor = highlightColor
+            
+            let scaleAction = SKAction.sequence([
+                SKAction.scale(to: 1.2, duration: 0.2),
+                SKAction.scale(to: 1.0, duration: 0.2)
+            ])
+            
+            let repeatForever = SKAction.repeatForever(scaleAction)
+            
+            startPointNode?.run(repeatForever)
+            endPointNode?.run(repeatForever)
         } else {
-            endPoint = point
+            lineNode?.strokeColor = color
+            startPointNode?.fillColor = color
+            endPointNode?.fillColor = color
+            
+            startPointNode?.setScale(1.0)
+            endPointNode?.setScale(1.0)
+            
+            lineNode?.removeAllActions()
+            startPointNode?.removeAllActions()
+            endPointNode?.removeAllActions()
         }
-    }
-    
-    private func snapNodeByVerticalOrHorizontal(point: CGPoint, startPoint: CGPoint) -> CGPoint {
-        var snappedPoint = point
-        
-        if abs(point.y - startPoint.y) < snapTreshold {
-            snappedPoint.y = startPoint.y
-        }
-        
-        if abs(point.x - startPoint.x) < snapTreshold {
-            snappedPoint.x = startPoint.x
-        }
-        
-        return snappedPoint
-    }
-    
-    private func snapToOtherNodes(point: CGPoint, nodes: [VectorNode]) -> CGPoint {
-        var snappedPoint = point
-        
-        for vector in nodes {
-            if vector.id != self.id {
-                if abs(point.x - vector.startPoint.x) < snapTreshold && abs(point.y - vector.startPoint.y) < snapTreshold {
-                    snappedPoint = vector.startPoint
-                    break
-                }
-                
-                if abs(point.x - vector.endPoint.x) < snapTreshold && abs(point.y - vector.endPoint.y) < snapTreshold {
-                    snappedPoint = vector.endPoint
-                    break
-                }
-            }
-        }
-        
-        return snappedPoint
     }
 }

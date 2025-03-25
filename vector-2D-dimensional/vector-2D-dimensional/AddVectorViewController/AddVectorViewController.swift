@@ -9,8 +9,8 @@ import UIKit
 import Combine
 
 
-class AddVectorViewController: UIViewController {
-    private var viewModel = AddVectorViewModel()
+final class AddVectorViewController: UIViewController {
+    private let viewModel: AddVectorViewModel
     private var cancellables = Set<AnyCancellable>()
     var vectorDidAdd: ((VectorModel) -> Void)?
     

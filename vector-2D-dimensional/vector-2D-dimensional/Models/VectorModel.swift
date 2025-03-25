@@ -8,7 +8,7 @@
 import UIKit
 import RealmSwift
 
-class VectorModel: Object {
+final class VectorModel: Object {
     @objc dynamic var id: UUID = UUID()
     @objc dynamic var startX: Double = 0.0
     @objc dynamic var startY: Double = 0.0
