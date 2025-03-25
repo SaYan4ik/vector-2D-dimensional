@@ -26,6 +26,22 @@ final class SideMenuViewController: UIViewController {
         return tableView
     }()
     
+    let noVectorsView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = Themes.primaryBackgroundSecondary.withAlphaComponent(0.5)
+        view.layer.cornerRadius = 12
+        return view
+    }()
+    
+    let noVectorLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = Themes.textPrimary
+        label.text = "No vectors"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private var cancellables = Set<AnyCancellable>()
     weak var delegate: SideMenuViewControllerDelegate?
     var dataSource: [VectorModel] = []
@@ -63,22 +79,39 @@ final class SideMenuViewController: UIViewController {
     
     private func setupUI() {
         view.addSubview(tableView)
+        view.addSubview(noVectorsView)
+        noVectorsView.addSubview(noVectorLabel)
+        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            noVectorsView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noVectorsView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            noVectorLabel.topAnchor.constraint(equalTo: noVectorsView.topAnchor, constant: 16),
+            noVectorLabel.leadingAnchor.constraint(equalTo: noVectorsView.leadingAnchor, constant: 16),
+            noVectorLabel.trailingAnchor.constraint(equalTo: noVectorsView.trailingAnchor, constant: -16),
+            noVectorLabel.bottomAnchor.constraint(equalTo: noVectorsView.bottomAnchor, constant: -16)
         ])
     }
     
     func updateVectors() {
         viewModel.fetchVectors()
+        print("update vectros side menue")
     }
 }
 
 extension SideMenuViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dataSource.count
+        if dataSource.isEmpty {
+            noVectorsView.isHidden = false
+            return 0
+        } else {
+            noVectorsView.isHidden = true
+            return dataSource.count
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

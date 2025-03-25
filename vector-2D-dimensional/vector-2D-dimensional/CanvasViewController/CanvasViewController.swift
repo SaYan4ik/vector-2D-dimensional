@@ -93,6 +93,8 @@ final class CanvasViewController: UIViewController, SideMenuViewControllerDelega
                 length: vector.length,
                 angle: vector.angle
             )
+            
+            self?.sideMenuViewController.updateVectors()
         }
         navigationController?.pushViewController(addVectorVC, animated: true)
     }
