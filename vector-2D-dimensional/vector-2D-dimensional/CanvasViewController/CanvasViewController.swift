@@ -110,7 +110,6 @@ extension CanvasViewController {
         sideMenuViewController.view.translatesAutoresizingMaskIntoConstraints = false
         setupSideMenuConstrain()
         
-        
         let edgePanGestureRecognizer = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(handleEdgeSwipe))
         edgePanGestureRecognizer.edges = .left
         view.addGestureRecognizer(edgePanGestureRecognizer)
@@ -167,7 +166,6 @@ extension CanvasViewController {
             
         }, completion: completion)
     }
-    
 }
 
 extension CanvasViewController: UIGestureRecognizerDelegate {

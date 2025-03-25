@@ -13,7 +13,7 @@ protocol VectorMovementable {
     var dragDidEnd: (() -> Void)? { get set }
 }
 
-final class VectorMovementManager: VectorMovementable{
+final class VectorMovementManager: VectorMovementable {
     private var vectorManager: VectorManagable?
     private weak var scene: SKScene?
     

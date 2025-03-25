@@ -65,8 +65,7 @@ final class SideMenuTableViewCell: UITableViewCell {
         super.layoutSublayers(of: self.layer)
         gradientLayer.frame = contentView.bounds
         
-        let colorSet = [Themes.primaryBackgroundSecondary,
-                        Themes.tintNavigationBar]
+        let colorSet = [Themes.primaryBackgroundSecondary, Themes.tintNavigationBar]
         let location = [0.2, 1.0]
         
         contentView.addGradient(with: gradientLayer, colorSet: colorSet, locations: location)

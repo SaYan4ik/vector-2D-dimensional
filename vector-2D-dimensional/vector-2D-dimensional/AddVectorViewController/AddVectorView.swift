@@ -20,7 +20,7 @@ final class AddVectorView: UIView {
     lazy var endVectorLabelCords = createLabel(text: "End cords X / Y",
                                                font: .boldSystemFont(ofSize: 17))
     
-    lazy var otherParamsLabel = createLabel(text: "Other Params",
+    lazy var otherParamsLabel = createLabel(text: "Length / Degree",
                                             font: .boldSystemFont(ofSize: 17))
     
     lazy var startContainerStack = stackViewBuilder(axis: .horizontal,
