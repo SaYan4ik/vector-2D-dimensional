@@ -136,13 +136,10 @@ extension CanvasViewController {
         let hamburgerImage = UIImage(systemName: "line.horizontal.3")
         let arrowBackImage = UIImage(systemName: "arrowshape.backward")
         UIView.animate(withDuration: 3) {
-            
             sender.setImage(self.isSideMenuShown ? hamburgerImage : arrowBackImage, for: .normal)
         } completion: { isFinished in
             guard isFinished else { return }
         }
-
-
     }
     
     private func sideMenuState(expanded: Bool) {

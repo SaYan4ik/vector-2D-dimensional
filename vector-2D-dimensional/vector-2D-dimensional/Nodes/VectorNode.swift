@@ -134,17 +134,17 @@ final class VectorNode: SKNode {
         
         let increaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
             let progress = elapsedTime / CGFloat(duration)
-            self.lineNode?.lineWidth = 2.0 + 3.0 * progress
-            self.startPointNode?.lineWidth = 2.0 + 3.0 * progress
-            self.endPointNode?.lineWidth = 2.0 + 3.0 * progress
+            self.lineNode?.lineWidth = 3.0 + 3.0 * progress
+            self.startPointNode?.lineWidth = 3.0 + 3.0 * progress
+            self.endPointNode?.lineWidth = 3.0 + 3.0 * progress
         }
         
         let decreaseWidth = SKAction.customAction(withDuration: duration) { node, elapsedTime in
             let progress = elapsedTime / CGFloat(duration)
             
-            self.lineNode?.lineWidth = 5.0 - 3.0 * progress
-            self.startPointNode?.lineWidth = 5.0 - 3.0 * progress
-            self.endPointNode?.lineWidth = 5.0 - 3.0 * progress
+            self.lineNode?.lineWidth = 6.0 - 3.0 * progress
+            self.startPointNode?.lineWidth = 4.0 - 3.0 * progress
+            self.endPointNode?.lineWidth = 4.0 - 3.0 * progress
         }
         
         let sequence = SKAction.sequence([increaseWidth, decreaseWidth])

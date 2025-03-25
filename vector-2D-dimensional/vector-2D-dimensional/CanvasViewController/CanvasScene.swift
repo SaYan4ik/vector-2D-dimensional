@@ -44,13 +44,14 @@ final class CanvasScene: SKScene {
         let width = 4000.0
         
         let cellSize: CGFloat = 30.0
-        let rows = Int( height / cellSize)
-        let cols = Int( width / cellSize)
+        let rows = Int(height / cellSize)
+        let cols = Int(width / cellSize)
         
         for col in 0...cols {
+            let x = CGFloat(col) * cellSize
             let path = CGMutablePath()
-            path.move(to: CGPoint(x: CGFloat(col) * cellSize, y: 0))
-            path.addLine(to: CGPoint(x: CGFloat(col) * cellSize, y: height))
+            path.move(to: CGPoint(x: x, y: 0))
+            path.addLine(to: CGPoint(x: x, y: height))
             
             let line = SKShapeNode(path: path)
             line.strokeColor = .gray
@@ -59,9 +60,10 @@ final class CanvasScene: SKScene {
         }
         
         for row in 0...rows {
+            let y = CGFloat(row) * cellSize
             let path = CGMutablePath()
-            path.move(to: CGPoint(x: 0, y: CGFloat(row) * cellSize))
-            path.addLine(to: CGPoint(x: width, y: CGFloat(row) * cellSize))
+            path.move(to: CGPoint(x: 0, y: y))
+            path.addLine(to: CGPoint(x: width, y: y))
             
             let line = SKShapeNode(path: path)
             line.strokeColor = .gray
