@@ -15,7 +15,7 @@ protocol SideMenuViewControllerDelegate: AnyObject {
 }
 
 final class SideMenuViewController: UIViewController {
-    let tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.register(SideMenuTableViewCell.self, forCellReuseIdentifier: String(describing: SideMenuTableViewCell.self))
@@ -26,7 +26,7 @@ final class SideMenuViewController: UIViewController {
         return tableView
     }()
     
-    let noVectorsView: UIView = {
+    private lazy var noVectorsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = Themes.primaryBackgroundSecondary.withAlphaComponent(0.5)
@@ -34,7 +34,7 @@ final class SideMenuViewController: UIViewController {
         return view
     }()
     
-    let noVectorLabel: UILabel = {
+    private lazy var noVectorLabel: UILabel = {
         let label = UILabel()
         label.textColor = Themes.textPrimary
         label.text = "No vectors"
@@ -44,8 +44,8 @@ final class SideMenuViewController: UIViewController {
     
     private var cancellables = Set<AnyCancellable>()
     weak var delegate: SideMenuViewControllerDelegate?
-    var dataSource: [VectorModel] = []
-    let gradientLayer = CAGradientLayer()
+    private var dataSource: [VectorModel] = []
+    private let gradientLayer = CAGradientLayer()
     
     private var viewModel: SideMenuViewModel
     

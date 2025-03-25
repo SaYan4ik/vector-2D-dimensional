@@ -40,18 +40,19 @@ final class CanvasScene: SKScene {
     }
     
     private func drawGridCells() {
-        let height = 4000.0
-        let width = 4000.0
-        
         let cellSize: CGFloat = 30.0
-        let rows = Int(height / cellSize)
-        let cols = Int(width / cellSize)
+        let gridExtent: CGFloat = 2000.0
+        let gridColor = SKColor(white: 0.8, alpha: 1.0)
+        let axisColor = SKColor(white: 0.5, alpha: 1.0)
         
-        for col in 0...cols {
-            let x = CGFloat(col) * cellSize
+        let verticalLines = Int(gridExtent / cellSize)
+        let horizontalLines = Int(gridExtent / cellSize)
+        
+        for i in -verticalLines...verticalLines {
+            let x = CGFloat(i) * cellSize
             let path = CGMutablePath()
-            path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: height))
+            path.move(to: CGPoint(x: x, y: -gridExtent))
+            path.addLine(to: CGPoint(x: x, y: gridExtent))
             
             let line = SKShapeNode(path: path)
             line.strokeColor = .gray
@@ -59,19 +60,30 @@ final class CanvasScene: SKScene {
             self.addChild(line)
         }
         
-        for row in 0...rows {
-            let y = CGFloat(row) * cellSize
+        for i in -horizontalLines...horizontalLines {
+            let y = CGFloat(i) * cellSize
             let path = CGMutablePath()
-            path.move(to: CGPoint(x: 0, y: y))
-            path.addLine(to: CGPoint(x: width, y: y))
+            path.move(to: CGPoint(x: -gridExtent, y: y))
+            path.addLine(to: CGPoint(x: gridExtent, y: y))
             
             let line = SKShapeNode(path: path)
-            line.strokeColor = .gray
+            line.strokeColor = gridColor
             line.lineWidth = 1.0
             self.addChild(line)
         }
+        
+        let axisPath = CGMutablePath()
+        axisPath.move(to: CGPoint(x: -gridExtent, y: 0))
+        axisPath.addLine(to: CGPoint(x: gridExtent, y: 0))
+        axisPath.move(to: CGPoint(x: 0, y: -gridExtent))
+        axisPath.addLine(to: CGPoint(x: 0, y: gridExtent))
+        
+        let axis = SKShapeNode(path: axisPath)
+        axis.strokeColor = axisColor
+        axis.lineWidth = 2.0
+        self.addChild(axis)
     }
-    
+
     private func setupCamera(for view: SKView) {
         self.camera = self.cameraNode
         self.addChild(self.cameraNode)
@@ -96,7 +108,20 @@ final class CanvasScene: SKScene {
             cameraNode.position = newPosition
             gesture.setTranslation(.zero, in: gesture.view)
         }
+        
     }
+    
+    func centerCamera(on node: SKNode, duration: TimeInterval = 0.5) {        
+        let cameraPosition = node.position
+        moveCamera(to: cameraPosition, duration: duration)
+    }
+    
+    private func moveCamera(to position: CGPoint, duration: TimeInterval = 0.5) {
+        let moveAction = SKAction.move(to: position, duration: duration)
+        moveAction.timingMode = .easeInEaseOut
+        cameraNode.run(moveAction)
+    }
+    
     
     func updateVectors(_ vectors: [VectorModel]) {
         vectorManager.updateVectors(vectors)

@@ -34,15 +34,15 @@ final class VectorMovementManager: VectorMovementable {
         let locationInScene = scene?.convertPoint(fromView: locationInView) ?? .zero
         
         switch gesture.state {
-        case .began:
-            longPressBegin(location: locationInScene)
-        case .changed:
-            longPressChanged(location: locationInScene)
-        case .ended, .cancelled:
-            longPressEnded()
-            selectedNode = nil
-        default:
-            break
+            case .began:
+                longPressBegin(location: locationInScene)
+            case .changed:
+                longPressChanged(location: locationInScene)
+            case .ended, .cancelled:
+                longPressEnded()
+                selectedNode = nil
+            default:
+                break
         }
     }
     

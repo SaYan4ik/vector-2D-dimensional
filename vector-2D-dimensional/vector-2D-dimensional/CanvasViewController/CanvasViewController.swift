@@ -11,7 +11,6 @@ import SpriteKit
 
 
 final class CanvasViewController: UIViewController, SideMenuViewControllerDelegate {
-    
     private var scene: CanvasScene = {
         let scene = CanvasScene()
         scene.backgroundColor = .white
@@ -199,9 +198,13 @@ extension CanvasViewController {
         DispatchQueue.main.async {
             if let selectedNode = self.scene.children
                 .map({($0 as? VectorNode)})
-                .first(where: { $0?.id == id })
-            {
-                selectedNode?.animationNodeBorder()
+                .first(where: { $0?.id == id }) {
+                guard let selectedNode,
+                      let nodeForFocus = selectedNode.startPointNode
+                else { return }
+                
+                self.scene.centerCamera(on: nodeForFocus)
+                selectedNode.animationNodeBorder()
             }
         }
     }

@@ -33,10 +33,6 @@ class VectorManager: VectorManagable {
         vectorNodes
     }
     
-    func getVectorNode(by id: UUID) -> VectorNode? {
-        return vectorNodes.first { $0.id == id }
-    }
-    
     private func clearScene() {
         vectorNodes.forEach { $0.removeFromParent() }
         vectorNodes.removeAll()
