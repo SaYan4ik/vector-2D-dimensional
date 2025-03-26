@@ -14,7 +14,7 @@ protocol VectorManagable {
     func updateVectorInRealm(_ vectorNode: VectorNode)
 }
 
-class VectorManager: VectorManagable {
+final class VectorManager: VectorManagable {
     private(set) var vectors: [VectorModel] = []
     private(set) var vectorNodes: [VectorNode] = []
     private weak var scene: SKScene?
