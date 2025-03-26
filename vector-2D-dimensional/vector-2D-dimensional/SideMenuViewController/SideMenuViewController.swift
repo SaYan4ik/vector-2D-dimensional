@@ -99,7 +99,6 @@ final class SideMenuViewController: UIViewController {
     
     func updateVectors() {
         viewModel.fetchVectors()
-        print("update vectros side menue")
     }
 }
 
